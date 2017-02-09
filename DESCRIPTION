@@ -1,0 +1,17 @@
+Package: DaMiRseq
+Type: Package
+Date: 2017-02-09
+Title: The DaMiRseq package - A Data Mining pipeline for RNA-seq data: normalization, features selection and classification
+Version: 0.99.0
+Author: Mattia Chiesa <mchiesa@ccfm.it>, Luca Piacentini <luca.piacentini@ccfm.it>
+Maintainer: Mattia Chiesa <mchiesa@ccfm.it>, Luca Piacentini <luca.piacentini@ccfm.it>
+Description: The DaMiRseq package offers a tidy pipeline that includes data mining procedures of data handling  that lead up to the implementation of prediction learning methods to build classification models. The package accepts any kind of data presented as a table of raw counts and allows including covariates that occur with the experimental setting. A series of functions enable the user to clean up the data by filtering genomic features and samples, to adjust data by identifying and removing the unwanted source of  variation (i.e. batches and confounding factors) and to select the best predictors for modeling.  Finally, a ``Stacking'' ensemble learning technique is applied to build a robust classification model. Every step includes a checkpoint that the user may exploit to assess the effects of data management by looking at diagnostic plots, such as clustering and heatmaps, RLE boxplots, MDS or correlation plot.
+License: GPL (>= 2)
+Encoding: UTF-8
+LazyData: true
+biocViews: Sequencing, RNASeq, Classification
+VignetteBuilder: knitr
+Suggests:BiocStyle, knitr, stats
+Depends:
+    R (>= 3.3.0), DESeq2, EDASeq, RColorBrewer, limma, ggplot2, sva, Hmisc, pheatmap, factoextra, FactoMineR, cluster, corrplot, calibrate, BiocParallel, edgeR, gridExtra, randomForest, party, e1071, caret, glmnet, MASS, lubridate, plsVarSel, reshape2, kknn, FSelector
+RoxygenNote: 5.0.1

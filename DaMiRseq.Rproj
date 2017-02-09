@@ -1,0 +1,25 @@
+Version: 1.0
+
+RestoreWorkspace: Default
+SaveWorkspace: Default
+AlwaysSaveHistory: Default
+
+EnableCodeIndexing: Yes
+UseSpacesForTab: Yes
+NumSpacesForTab: 2
+Encoding: ISO8859-1
+
+RnwWeave: knitr
+LaTeX: pdfLaTeX
+RootDocument: vignettes/DaMiRseq.Rnw
+
+AutoAppendNewline: Yes
+StripTrailingWhitespace: Yes
+
+BuildType: Package
+PackageUseDevtools: Yes
+PackageInstallArgs: --no-multiarch --with-keep.source --resave-data
+PackageBuildArgs: --resave-data=best
+PackageBuildBinaryArgs: --compact-vignettes="gs+qpdf"
+PackageCheckArgs: --no-examples
+PackageRoxygenize: rd,collate,namespace
