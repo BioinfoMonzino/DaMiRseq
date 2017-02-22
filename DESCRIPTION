@@ -1,13 +1,12 @@
 Package: DaMiRseq
 Type: Package
-Date: 2017-02-09
+Date: 2017-02-22
 Title: Data Mining for RNA-seq data: normalization,
     feature selection and classification
-Version: 0.99.1
+Version: 0.99.2
 Author: Mattia Chiesa <mchiesa@ccfm.it>, 
     Luca Piacentini <luca.piacentini@ccfm.it>
-Maintainer: Mattia Chiesa <mchiesa@ccfm.it>, 
-    Luca Piacentini <luca.piacentini@ccfm.it>
+Maintainer: Mattia Chiesa <mchiesa@ccfm.it>
 Description: The DaMiRseq package offers a tidy pipeline that includes data
     mining procedures of data handling  that lead up to the implementation
     of prediction learning methods to build classification models. The 
@@ -32,5 +31,5 @@ Imports: DESeq2, limma, EDASeq, RColorBrewer, sva, Hmisc, pheatmap,
     plsVarSel, kknn, FSelector, methods, stats, utils, graphics, grDevices,
     reshape2
 Suggests: BiocStyle, knitr, testthat
-Depends: R (>= 3.3.0), SummarizedExperiment, ggplot2
+Depends: R (>= 3.4), SummarizedExperiment, ggplot2
 RoxygenNote: 5.0.1
