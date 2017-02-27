@@ -117,14 +117,12 @@ library(DaMiRseq)
 Here, we load by the \Rfunction{data()} function the prefiltered expression data made of 21363 genes and 40 samples (20 ACC and 20 FC):
 
 <<chu_2>>=
-set.seed(12)
 data(SE)
 assay(SE)[1:5, c(1:5, 21:25)]
 colData(SE)
 @
 Data are stored in the \Robject{SE} object of class \Rclass{SummarizedExperiment}. Expression data may be retrieved by the \Rfunction{assay()} accessor function and covariates information may be accessed by \Rfunction{colData()} function \footnote{See \Biocpkg{SummarizedExperiment} \cite{mm}, for more details.}.
 The \textit{``colData(SE)''} data frame, containing the covariates information, includes also the \textbf{ \textit{'class'}} column as it is required by the instructions (mandatory). \\
-\textbf{Notes.} We have already used the \Rfunction{set.seed()} function that allows the user to make the results of the whole pipeline reproducible.
 
 
 \subsection{Preprocessing and Normalization} \label{filt_norm}
@@ -143,7 +141,7 @@ allows the removal of inconsistent samples.
   of the \Biocpkg{DESeq2} package \cite{love2014moderated}. Using \Rfunction{assay()} function, we can see that ``VST'' transformation produces data on the log2 scale normalized with respect to the library size.
 
   \subsubsection{Filtering By Coefficient of Variation (CV)} \label{filt_cv}
-  We named ``hypervariants'' those genes that present anomalous read counts, by comparing to the mean value across the samples. We identify them by calculating two distinct CV on sample sets that belong, respectively, to the first and the second 'class'. Genes with both 'class' CV greater than \Rcode{th.cv} will be discarded.
+  We named ``hypervariants'' those genes that present anomalous read counts, by comparing to the mean value across the samples. We identify them by calculating two distinct CV on sample sets that belong, respectively, to the first and the second 'class'. Genes with both 'class' CV greater than \Rcode{th.cv} will be discarded.\\
 \textbf{Note.} Computing a 'class' restricted CV may prevent the removal of features that may be specifically associated with a certain class. This could be important in some biological contexts, for example, for immune genes whose expression under definite conditions may unveil peculiar class-gene associations. \\
   This time, we run again the \Rfunction{DaMiR.normalization} function by enabling the ``hypervariant'' gene detection by setting \Rcode{hyper = "yes"} and \Rcode{th.cv=3} (default):
   <<chu_5>>=
@@ -180,17 +178,17 @@ allows the removal of inconsistent samples.
   data_filt <- DaMiR.sampleFilt(data_norm, th.corr=0.9)
   dim(data_filt)
   @
-In this casa, zero samples were discarded because their mean absolute correlation is higher than 0.9. Data were stored in a \Robject{SummarizedExperiment} object, which contains a normalized and filtered expression \Rclass{matrix} and an updated \Robject{DataFrame} with the covariates of interest.
+In this case, zero samples were discarded because their mean absolute correlation is higher than 0.9. Data were stored in a \Robject{SummarizedExperiment} object, which contains a normalized and filtered expression \Rclass{matrix} and an updated \Robject{DataFrame} with the covariates of interest.
 
 
 \subsection{Adjusting Data} \label{adj_data}
-After data normalization, we propose to test for the presence of surrogate variables (sv) in order to remove the effect of putative confounding factors from the expression data. Nonetheless, the algorithm cannot distinguish among real technical batches and important biological effects (such as environmental, genetic or demographic variables) whose correction is not desirable. Therefore we enable the user to evaluate whether any of the retrieved sv is correlated or not with one or more known variables. Thus, this step gives the user the opportunity to choose the most appropriate number of sv to be used for expression data adjustment \cite{leek2007capturing, jaffe2015practical}.
+After data normalization, we propose to test for the presence of surrogate variables (sv) in order to remove the effect of putative confounding factors from the expression data. Nonetheless, the algorithm cannot distinguish among real technical batches and important biological effects (such as environmental, genetic or demographic variables) whose correction is not desirable. Therefore, we enable the user to evaluate whether any of the retrieved sv is correlated or not with one or more known variables. Thus, this step gives the user the opportunity to choose the most appropriate number of sv to be used for expression data adjustment \cite{leek2007capturing, jaffe2015practical}.
 
 
   \subsubsection{Identification of Surrogate Variables} \label{sv_id}
   Surrogate variables identification, basically, relies on the SVA algorithm by Leek et al. \cite{leek2012sva} \footnote{See \Biocpkg{sva} package}.
   A novel method, that allows the identification of the the maximum number of sv to be used for data adjustment, has been introduced in our package.
-  Specifically, it integrates part of the SVA algorithm with custom code. Briefly, we computed eigenvalues of data and then, we calculated the squared of each eigenvalues. The ratio
+  Specifically, we computed eigenvalues of data and then, we calculated the squared of each eigenvalues. The ratio
   between each ``squared eigenvalue'' and the sum of them were then calculated. These values represent a surrogate measure of the ``Fraction of Explained Variance'' (fve) that we would
   obtain by principal component analysis (PCA). Their cumulative sum can be, finally, used to select sv. The method to be applied can be selected in the \Rcode{method} argument of the
   \Rfunction{DaMiR.SV} function. The option \Rcode{"fve"}, \Rcode{"be"} and \Rcode{"leek"} selects, respectively, our implementation or the two methods proposed
@@ -250,7 +248,7 @@ In this context, the function \Rfunction{DaMiR.Allplot} helps to identify how di
 
   \item [Relative Log Expression (RLE) boxplot] - This plot, drawn by \Biocpkg{EDASeq} package\cite{risso2011gc}, helps to visualize the differences between the distributions across samples: medians of each RLE boxplot should be centered around zero and a large shift from zero suggests that samples could have quality problems. Here, different colors means different classes.
 \end{description}
-In this vignette, \Rfunction{DaMiR.Allplot} is used to appreciate the effect of data adjusting (see Section~\ref{adj_data}). First, we check how data appear just after normalization: the heatmap and RLE plot in Figure~\ref{fig_n1} (upper and lower panel, respectively) and MDS plots in Figures~\ref{fig_n3} and ~\ref{fig_n4} do not highlight the presence of specific clusters.
+In this vignette, \Rfunction{DaMiR.Allplot} is used to appreciate the effect of data adjusting (see Section~\ref{adj_data}). First, we check how data appear just after normalization: the heatmap and RLE plot in Figure~\ref{fig_n1} (upper and lower panel, respectively) and MDS plots in Figures~\ref{fig_n3} and ~\ref{fig_n4} do not highlight the presence of specific clusters.\\
 \textbf{Note.} If a covariate contains missing data (i.e. ``NA'' values), the function cannot draw the plot that bear covariate information. The user is, however, encouraged to impute missing data if s/he considers it meaningful to plot the covariate of interest for ``diagnosis'' purposes.
   <<chu_11, dev="pdf">>=
   # After gene filtering and normalization
@@ -332,12 +330,15 @@ The previous step(s) returned an adjusted expression matrix with the effect of s
 The first step allows the user to exclude all non-informative class-related features using a backward variable elimination procedure  \cite{mehmood2012review}. The \Rfunction{DaMiR.FSelect} function embeds a principal component analysis (PCA) to identify principal components (PCs) which correlate with ``class''. The correlation is defined by the user through the \Rcode{th.corr} argument. The higher the correlation, the lower the number of PCs returned. Importantly, users should pay attention to appropriately set the \Rcode{th.corr} argument since the total number of retrieved features depends, indeed, on the number of the selected PCs. \\
 The number of class-correlated PCs is then internally used by the function to perform a backward variable elimination PLS and remove those variables that are less informative with respect to class \cite{frank1987intermediate}.\\
 \textbf{Note.} Before running the \Rfunction{DaMiR.FSelect} function, we need to transpose our normalized expression data. Actually, the function \Rfunction{DaMiR.transpose} transposes data but also tries to prevent the use of tricky feature labels. The ``-'' and ``.'' characters within variable labels (commonly found, for example, in gene symbols) may, in fact, cause errors if included in the model design as it is required to execute part of the code of the \Rfunction{DaMiR.FSelect} function. Thus, we, firstly, search and, eventually, replace them with non causing error characters.
+We used the \Rfunction{set.seed(12345)} function that allows the user to make the results of the whole pipeline reproducible.
+
  <<chu_13>>=
+ set.seed(12345)
  data_clean<-DaMiR.transpose(assay(data_adjust))
  df<-colData(data_adjust)
  data_reduced <- DaMiR.FSelect(data_clean, df, th.corr=0.4)
  @
-The data\_reduced object returns an expression matrix with important features. As we can see, the initial number of 19052 features has been reduced to 286.
+The ``data\_reduced'' object returns an expression matrix with important features. As we can see, the initial number of 19052 features has been reduced to 286.
 
 \subsubsection{Removing highly correlated features}
 Some of the returned important features may, however, be highly correlated. To prevent the inclusion of redundant features that may decrease the model performance during the classification step, we apply a function that produces a pair-wise absolute correlation matrix. When two features present a correlation higher than \Rcode{th.corr} argument, the algorithm calculates the mean absolute correlation of each feature and, then, removes the feature with the largest mean absolute correlation.
@@ -345,7 +346,7 @@ Some of the returned important features may, however, be highly correlated. To p
  data_reduced <- DaMiR.FReduct(data_reduced$data)
  DaMiR.MDSplot(data_reduced, df)
   @
-In our example, we used a Spearman's correlation metric and a correletion threshold of 0.85 (default). This further reduction step filters out 79 highly correlated genes over the 286 returned by the \Rfunction{DaMiR.FSelect}. The figure below shows the MDS plot drawn by the use of the expression matrix of the remaining 207 genes.
+In our example, we used a Spearman's correlation metric and a correletion threshold of 0.85 (default). This further reduction step filters out 54 highly correlated genes over the 274 returned by the \Rfunction{DaMiR.FSelect}. The figure below shows the MDS plot drawn by the use of the expression matrix of the remaining 220 genes.
 \begin{figure}[!htbp]
 \includegraphics{figure/chu_14-1}
 \caption{
@@ -438,7 +439,7 @@ Accuracies Comparison. The violin plot highlights the classification accuracy of
 \end{figure}
 \FloatBarrier
 
-As shown in Figure~\ref{fig_n10}, almost all the weak classifiers show a very high (greater than 95\% in average) classification accuracy (RF: $96.17 \pm 3.13$, SVM: $97.33 \pm 2.54$, NB: $97 \pm 3.11$, LDA: $94.83 \pm 6.36$, LR: $91.5 \pm 7.78$, 3kNN: $95 \pm 4.73$). As discussed in Section~\ref{intro}, the meta-learner is more influenced by better weak classifiers than inferior ones, which ensures ``Ensemble'' to reach a classification accuracy equal to $97 \pm 2.49$.
+As shown in Figure~\ref{fig_n10}, almost all the weak classifiers show a very high (greater than 95\% in average) classification accuracy (RF: $99.5 \pm 2.01$, SVM: $99.33 \pm 1.73$, NB: $94 \pm 8.45$, LDA: $92.83 \pm 8.48$, LR: $88.83 \pm 10.64$, 3kNN: $96.67 \pm 3.56$). As discussed in Section~\ref{intro}, the meta-learner is more influenced by better weak classifiers than inferior ones, which ensures ``Ensemble'' to reach a classification accuracy equal to $99 \pm 2.42$.
 
 \subsection{Exporting output data}
 \damir{} has been designed to allow users to export the outputs of each function, which consist substantially in \Robject{matrix} or \Robject{data frame} objects. The export can be done, using the base R functions, such as \Rfunction{write.table} or \Rfunction{write.csv}. For example, we could be interested in saving normalized data matrix, stored in ``data\_norm'' in a tab-delimited file:
@@ -449,102 +450,48 @@ write.table(data_norm, file = outputfile_norm, quote = FALSE, sep = "\t")
 @
 
 
-\section{Standard workflow and variations}
-In this section, we highlight and discuss how variations to the \damir{} pipeline could affect the final classification results. Results will be discussed in Section~\ref{perf_comp}. \\
-\textbf{Note.} For simplicity, here we do not produce all plots, except for the violin plot generated by \Rfunction{DaMiR.EnsembleLearning}, used for performances comparison. However, the usage of \Rfunction{DaMiR.Allplot}, \Rfunction{DaMiR.corrplot}, \Rfunction{DaMiR.Clustplot} and \Rfunction{DaMiR.MDSplot} \textbf{is crucial} to check the effect of each process.
+\section{Adjusting the data: a necessary step?} \label{no_SV_corr}
+In this section, we highlight how the early step of data correction could impact on the final classification results. Data transformation and global scaling approaches are traditionally applied to expression data but they could not be always effective to capture unwanted source of variation. High-dimensional data are, in fact, known to be deeply influenced by noises and biases of high-throughput experiments. For this reason, we strongly suggest to check the presence of any confounding factor and assess their possible effect since they could dramatically alter the result.
+However, the step described in Section~\ref{adj_data} could be skipped if we assume that the data are not affected by any batches (known or unknown), or if we do not want to take them into account. Thus, we performed, here, the same feature selection and classification procedure as applied before but without removing the putative noise effects from our expression data. In this case, VST normalized data will be used. Since the functions embedded into these steps require a random sampling to be executed, we set the same seed as in Section~\ref{sect2} (\Rcode{set.seed(12345)}) to ensure a right comparison between results.
 
 
-\subsection{Without cleaning the data} \label{not_adj}
-Adjusting the data step, described in Section~\ref{adj_data}, could be skipped if we assume that data are not affected by any batches (known or unknown), or we do not want to take them into account. In this case, VST or rlog normalized data will be used for the following feature selection step without any other adjustment. However, we sincerely suggest to always check the presence of any confounding factors since their effects could dramatically affect the results.
-We set the same seed used in Section~\ref{sect2} (\Rcode{set.seed(12)}), which ensures the right comparisons between results.
+\textbf{Note.} For simplicity, here we do not produce all plots, except for the violin plot generated by \Rfunction{DaMiR.EnsembleLearning}, used to compare the performances, although the usage of \Rfunction{DaMiR.Allplot}, \Rfunction{DaMiR.corrplot}, \Rfunction{DaMiR.Clustplot} and \Rfunction{DaMiR.MDSplot} \textbf{is crucial} to check the effect of each process.
 
-<<chu_18, dev="pdf", echo=FALSE>>=
+<<chu_18, dev="pdf">>=
 ## Feature Selection
+set.seed(12345)
 data_clean_2<-DaMiR.transpose(assay(data_filt))
 df_2<-colData(data_filt)
+
 data_reduced_2 <- DaMiR.FSelect(data_clean_2, df_2, th.corr=0.4)
-# data_reduced$data[c(1:5), c(1:5,21:25)]
 data_reduced_2 <- DaMiR.FReduct(data_reduced_2$data)
 df.importance_2 <- DaMiR.FSort(data_reduced_2, df_2)
 head(df.importance_2)
-selected_features_2 <- DaMiR.FBest(data_reduced_2, ranking=df.importance_2, n.pred=5)
+
+selected_features_2 <- DaMiR.FBest(data_reduced_2, ranking=df.importance_2,
+                                   n.pred=5)
 selected_features_2$predictors
 
 ## Classification
 Classification_res_2 <- DaMiR.EnsembleLearning(selected_features_2$data,
-                                             classes=df_2$class, fSample.tr = 0.5, fSample.tr.w = 0.5, iter = 30)
+                                             classes=df_2$class,
+                                             fSample.tr = 0.5,
+                                             fSample.tr.w = 0.5,
+                                             iter = 30)
 
 
 @
 
+The consequence of data adjustment is already remarkable after the feature selection and reduction steps. The number of selected genes, indeed, decreased from 220 to 98 when data adjustment was not performed, suggesting that hidden factors may influence gene expression and likely mask class-related features. Furthermore, the ranking of the important features also differs if data correction is not applied. The two sets of 5 genes that are used to build the classification models shares, in fact, only 1 gene. This suggests that data adjustment affects both the number and the quality of the features that can be selected for classification. Therefore, the overall classification performances, without the appropriate data correction, hugely felt down below 90\% of accuracy for all the classifiers.
 
-\subsection{Changing the number of predictors} \label{more_pred}
-The number of predictors obviously affects the classification accuracy: a small number of features could not be sufficient to ensure a good classification power; on the other hand, many predictors allow better classification accuracies if they are truly associated with the response, but at the cost of a possible reduction of the generalization ability. In this case, we decide to use 10 predictors instead of the 5 employed in the standard workflow.
-
-<<chu_19, dev="pdf", echo=FALSE>>=
-
-selected_features_3 <- DaMiR.FBest(data_reduced, ranking=df.importance, n.pred = 10)
-selected_features_3$predictors
-
-## Classification
-Classification_res_3 <- DaMiR.EnsembleLearning(selected_features_3$data,
-                                             classes=df$class, fSample.tr = 0.5, fSample.tr.w = 0.5, iter = 30)
-
-@
-
-\subsection{Adding heterogeneous features for classification} \label{add_feat}
-Classification algorithms are ables to work with heterogeneous features, i.e. coming from different sources, such as other -omic data techniques, environment, demography etc. Both factorial and continuous variables may be used. \\
-In this example, we used the data of the ``sex'' and ``age'' covariates stored in the second and third column of the ``df'' data frame.
-
-<<chu_20, dev="pdf", echo=FALSE>>=
-## Classification
-Classification_res_4 <- DaMiR.EnsembleLearning(selected_features$data,
-                                             classes=df$class, covariates = df[,2:3], fSample.tr = 0.5, fSample.tr.w = 0.5, iter = 30)
-
-@
-
-\subsection{Standard workflow, changing the seed} \label{std_seed}
-The aim is to check the robustness of ``Ensemble'', changing training and test sets used before.\\
-\textbf{Note.} \damir{} has also a helper function, called \Rfunction{DaMiR.goldenDice}, which automatically generates a number, combining date and time information; the idea is to be as random as possible for training and test subsets generation, during classification step.
-Here, we changed the seed (\Rfunction{set.seed(12345)}) before the classification procedure that will slightly affect the accuracy results.
-
-<<chu_21, dev="pdf", echo=FALSE>>=
-# change the seed
-set.seed(12345)
-## Classification
-Classification_res_5 <- DaMiR.EnsembleLearning(selected_features$data,
-                                             classes=df$class, fSample.tr = 0.5, fSample.tr.w = 0.5, iter = 30)
-
-@
-
-
-\subsection{Performances comparison} \label{perf_comp}
-In this paragraph, we discuss the effect of each variation of the standard workflow, comparing performances of each ``Ensemble'' meta-learner.
-
-Figure~\ref{fig_n11} condenses results of \damir{}'s standard workflow variations, proposed in this Section. Results will be discussed separately, in comparison with ``Standard Workflow'',taken as the reference, described in Section~\ref{sect2} and depicted in Figure~\ref{fig_n10}.
+Figure~\ref{fig_n11} shows the results of the variation to standard workflow of \damir{}, proposed in this Section. Taking as reference the ``Standard Workflow'', described in Section~\ref{sect2}, we can observe that the performances, in terms of classification accuracy, drastically decrease:
+RF: $87.33 \pm 5.68$, SVM: $89 \pm 6.35$, NB: $87.83 \pm 8.38$, LDA: $79.17 \pm 8.72$, LR: $76.67 \pm 10.45$, 3kNN: $78.67 \pm 9.82$. These results affect obviously the performances of ``Ensemble'' meta-learner that reaches a classification accuracy equal to $88.67 \pm 5.24$.
 
 \begin{figure}[!htbp]
-\includegraphics[width=.6\textwidth]{figure/chu_18-2} % no SV
-\includegraphics[width=.6\textwidth]{figure/chu_19-1} % 10 predictors
-\includegraphics[width=.6\textwidth]{figure/chu_20-1} % adding SEx
-\includegraphics[width=.6\textwidth]{figure/chu_21-1} % Standard WF changing seed
-\caption{Performance comparison. Each violin plot shows the effect of a specific modification to \damir{} standard workflow, described in Section~\ref{sect2}; in particular, we can see at the top left part of this figure, results of Section~\ref{std_seed} workflow (\textit{Without cleaning the data}); at the top right, results of Section~\ref{not_adj}'s workflow (\textit{Changing the number of predictors}); at the bottom left, results of Section~\ref{more_pred} workflow (\textit{Adding heterogeneous features for classification}); and, at the bottom right, results of Section~\ref{add_feat} workflow (\textit{Standard Workflow, changing seed})}.
+\includegraphics{figure/chu_18-2} % no SV
+\caption{Accuracies Comparison. The violin plot shows the effect of the modification to \damir{} standard workflow, described in Section~\ref{no_SV_corr}: without adjusting data (following the steps described in Section~\ref{adj_data}), performances usually decrease; this could be explained by the fact that some noise, probably coming from unknown source of variation, is present in the dataset. In this example, overall accuracies drastically decrease below 90\% for all classifiers.}
 \label{fig_n11}
 \end{figure}
-
-
-\begin{description}[align=left]
-
-\item ['Standard Workflow' vs 'Without cleaning the data'.] Without adjusting data (following the steps described in Section~\ref{adj_data}), performances usually decrease; this could be explained by the fact that some noise, probably coming from unknown source of variation, is present in the dataset. In this example, overall accuracies drastically decrease below 90\% for all classifiers. See Figure~\ref{fig_n10} and upper right panel in Figure~\ref{fig_n11}.
-
-\item ['Standard Workflow' vs 'Changing the number of predictors'.] It is always good practice to achieve a trade-off between model complexity, generalization capability and classification power. Increasing the number of predictors changes the performances, even if in this case the classification accuracy does not increase or decrease uniformly among the classifiers. See Figure~\ref{fig_n10} and lower left panel in Figure~\ref{fig_n11}.
-
-\item ['Standard Workflow' vs 'Adding heterogeneous features for classification'.] We included the ``sex'' and ``age'' variables together with predictor genes to generate new classification models. Demographic variables may play an important role in some classification settings and may, in fact, impact prediction. However, in this case, these two variables do not impact deeply on prediction of the classifiers, with the exception of LDA and 3kNN that, conversely, showed a marked accuracy decrease. However, the poor performance of these two classifier (that are, in fact, less suitable to fit categorical variables) did not affected the overall performance of the ``Ensemble'' learner. See Figure~\ref{fig_n10} and bottom lower panel in Figure~\ref{fig_n11}.
-
-\item ['Standard Workflow' vs 'Standard Workflow, changing the seed'.] It is well known that, changing training and test sets, a specific classifier may present different performances. However, the stability and the robustness of a classifier affects the generalization capability. An advantage of adopting a Staking strategy is to be as stable and robust as possible. In this case the accuracy of ``Ensemble'' meta-learner is quite similar despite the use of different sampling, even though the performances of weak classifiers display some differences. This means that the choice of a single classifier, even when it shows the higher prediction accuracy, do not always ensure obtaining the best accuracy on new unseen data. The ``Ensemble'', instead, is always close to the best prediction accuracy. See Figure~\ref{fig_n10} and upper left panel in Figure~\ref{fig_n11}.
-\end{description}
-
-
 \FloatBarrier
 
 
