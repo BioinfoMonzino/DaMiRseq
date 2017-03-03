@@ -6,10 +6,11 @@
 #' procedure for the removal of non informative features.
 #'
 #'
-#' @param data A transposed data frame or a matrix of normalized expression data.
+#' @param data A transposed data frame or a matrix of normalized expression
+#'  data.
 #' Rows and Cols should be,
 #' respectively, observations and features
-#' @param df A data frame with known covariates; at least one column
+#' @param df A data frame with known variables; at least one column
 #' with
 #' 'class' label must be included
 #' @param th.corr Minimum threshold of correlation between class and
@@ -46,7 +47,7 @@
 #' @return A list containing:
 #' \itemize{
 #'   \item An expression matrix with only informative features.
-#'   \item A data frame with class and optional covariates information.
+#'   \item A data frame with class and optional variables information.
 #' }
 #'
 #' @references Tahir Mehmood, Kristian Hovde Liland, Lars Snipen and
@@ -82,7 +83,7 @@ DaMiR.FSelect <- function(data,
                           th.corr=0.6,
                           type=c("spearman", "pearson"),
                           th.VIP=3){
-  # check arguments
+  # check missing arguments
   if (missing(data))
     stop("'data' argument must be provided")
   if (missing(df))
@@ -91,17 +92,43 @@ DaMiR.FSelect <- function(data,
     type <- type[1]
   }
 
-  data<-as.data.frame(data)
-  df<-as.data.frame(df)
-
-  if(!(is.data.frame(data)))
-    stop("'data' must be a data frame")
-  if(!(is.data.frame(df)))
-    stop("'df' must be a data frame")
+  # check the type of argument
+  if(!(is.matrix(data) | is.data.frame(data)))
+    stop("'data' must be a matrix or a data.frame")
+  if(!(is(df, "DataFrame") | is.data.frame(df)))
+    stop("'df' must be a data.frame")
   if(!(is.numeric(th.corr)))
     stop("'th.corr' must be numeric")
   if(!(is.numeric(th.VIP)))
     stop("'th.VIP' must be numeric")
+
+
+  data<-as.data.frame(data)
+  df<-as.data.frame(df)
+
+  # check the presence of NA or Inf
+  if (any(is.na(data)))
+    stop("NA values are not allowed in the 'data' matrix")
+  if (any(is.na(df)))
+    stop("NA values are not allowed in the 'df' matrix")
+  if (any(is.infinite(as.matrix(data))))
+    stop("Inf values are not allowed in the 'data' matrix")
+
+  # specific checks
+  if (th.corr >1 | th.corr < 0)
+    stop("'th.corr' must be between 0 and 1")
+  if (th.VIP <= 0)
+    stop("'th.VIP' must be positive")
+  if (all((as.matrix(data) %%1) == 0))
+    warning("It seems that you are using raw counts!
+            This function works with normalized data")
+  if(dim(as.matrix(data))[1] != dim(df)[1])
+    stop("ncol(as.matrix(data)) must be equal to nrow(sv)")
+  if(!("class" %in% colnames(df)))
+    stop("'class' info is lacking!
+         Include the variable 'class'
+         in the 'df' data frame and label it 'class'!")
+
 
   correlation <-0
   features<-dim(data)[2]
@@ -207,7 +234,24 @@ DaMiR.FReduct <- function(data,
     type <- type[1]
   }
 
-  if(!(is.numeric(th.corr))) stop("'th.corr' must be numeric")
+  # check the type of argument
+  if(!(is.numeric(th.corr)))
+    stop("'th.corr' must be numeric")
+  if(!(is.data.frame(data)))
+    stop("'data' must be a data.frame")
+
+  # check the presence of NA or Inf
+  if (any(is.na(data)))
+    stop("NA values are not allowed in the 'data' matrix")
+  if (any(is.infinite(as.matrix(data))))
+    stop("Inf values are not allowed in the 'data' matrix")
+
+  # specific checks
+  if (th.corr >1 | th.corr < 0)
+    stop("'th.corr must be between 0 and 1")
+  if (all((as.matrix(data) %%1) == 0))
+    warning("It seems that you are using raw counts!
+            This function works with normalized data")
 
   features<-dim(data)[2]
 
@@ -221,7 +265,7 @@ DaMiR.FReduct <- function(data,
   }
 
   index_geneHighCorr<- findCorrelation(cormatrix, cutoff = th.corr)
-  data_reduced<-data[, -index_geneHighCorr]
+  data_reduced<-data[, -index_geneHighCorr, drop=FALSE]
 
   cat(features-dim(data_reduced)[2],
       "Highly correlated features have been discarded for classification.",
@@ -243,7 +287,7 @@ DaMiR.FReduct <- function(data,
 #' counts by vst or rlog. A log2 transformed expression matrix is also
 #'  accepted.
 #' Rows and Cols should be, respectively, observations and features
-#' @param df A data frame with class and known covariates; at least one
+#' @param df A data frame with class and known variables; at least one
 #' column with
 #' 'class' label must be included
 #' @param fSample Fraction of sample to be used for the implementation
@@ -300,14 +344,44 @@ DaMiR.FReduct <- function(data,
 #'
 DaMiR.FSort <- function(data, df, fSample=1){
 
-  # check arguments
-  if (missing(data)) stop("'data' argument must be provided")
-  if (missing(df)) stop("'df' argument must be provided")
+  # check missing arguments
+  if (missing(data))
+    stop("'data' argument must be provided")
+  if (missing(df))
+    stop("'df' argument must be provided")
+
+  # check the type of argument
+  if(!(is.data.frame(data)))
+    stop("'data' must be a data.frame")
+  if(!(is(df, "DataFrame") | is.data.frame(df)))
+    stop("'df' must be a data.frame")
+  if(!(is.numeric(fSample)))
+    stop("'fSample' must be a numeric")
 
   df<-as.data.frame(df)
-  if(!(is.data.frame(data))) stop("'data' must be a data frame")
-  if(!(is.data.frame(df))) stop("'df' must be a data frame")
-  if(!(is.numeric(fSample))) stop("'fSample' must be numeric")
+
+  # check the presence of NA or Inf
+  if (any(is.na(data)))
+    stop("NA values are not allowed in the 'data' matrix")
+  if (any(is.na(df)))
+    stop("NA values are not allowed in the 'df' matrix")
+  if (any(is.infinite(as.matrix(data))))
+    stop("Inf values are not allowed in the 'data' matrix")
+
+  # specific checks
+  if (fSample >1 | fSample < 0)
+    stop("'fSample must be between 0 and 1")
+  if (all((as.matrix(data) %%1) == 0))
+    warning("It seems that you are using raw counts!
+            This function works with normalized data")
+  if(dim(as.matrix(data))[1] != dim(df)[1])
+    stop("nrow(as.matrix(data)) must be equal to nrow(df)")
+  if(!("class" %in% colnames(df)))
+    stop("'class' info is lacking!
+         Include the variable 'class'
+         in the 'df' data frame and label it 'class'!")
+
+
 
   # estimated time for reliefF
   x <- dim(data)[2]
@@ -330,10 +404,11 @@ DaMiR.FSort <- function(data, df, fSample=1){
   # sampling #% of data for reliefF
   n_sample_relief <- round(round(nrow(data)*fSample)/2)
 
-  dataset.relief <- data[c(sample_index_cl1[1:n_sample_relief],
-                           sample_index_cl2[1:n_sample_relief]), ]
-  classes.relief <- classes[c(sample_index_cl1[1:n_sample_relief],
-                              sample_index_cl2[1:n_sample_relief])]
+  dataset.relief <- data[c(sample_index_cl1[seq_len(n_sample_relief)],
+                           sample_index_cl2[seq_len(n_sample_relief)]), ,
+                         drop=FALSE]
+  classes.relief <- classes[c(sample_index_cl1[seq_len(n_sample_relief)],
+                              sample_index_cl2[seq_len(n_sample_relief)])]
   dataset.relief$classes <- classes.relief
 
   # reliefF
@@ -349,7 +424,7 @@ DaMiR.FSort <- function(data, df, fSample=1){
   imp_attrib$attr_importance_scaled <-scale(as.matrix(
     imp_attrib$attr_importance))
   colnames(imp_attrib) <- c("RReliefF","scaled.RReliefF")
-  top_50_imp <- imp_attrib[1:50,1, drop=FALSE]
+  top_50_imp <- imp_attrib[seq_len(50),1, drop=FALSE]
   top_50_imp <- top_50_imp[rev(rownames(top_50_imp)),, drop=FALSE]
   colnames(top_50_imp) <- "Top50 features"
   dotchart(as.matrix(top_50_imp), xlab = "RReliefF importance",
@@ -416,25 +491,66 @@ DaMiR.FBest <- function(data,
                         n.pred=10,
                         th.zscore=2){
 
-  # check arguments
-  if (missing(data)) stop("'data' argument must be provided")
-  if (missing(ranking)) stop("'ranking' argument must be provided")
+  # check missing arguments
+  if (missing(data))
+    stop("'data' argument must be provided")
+  if (missing(ranking))
+    stop("'ranking' argument must be provided")
   if (missing(autoselect)){
     autoselect <- autoselect[1]
   }
 
-  if(!(is.data.frame(data))) stop("'data' must be a data frame")
-  if(!(is.data.frame(ranking))) stop("'ranking' must be a data frame")
-  if(!(is.numeric(n.pred))) stop("'n.pred' must be numeric")
-  if(!(is.numeric(th.zscore))) stop("'th.zscore' must be numeric")
+  # check the type of argument
+  if(!(is.data.frame(data)))
+    stop("'data' must be a data frame")
+  if(!(is.data.frame(ranking)))
+    stop("'ranking' must be a data frame")
+  if(!(is.numeric(n.pred)))
+    stop("'n.pred' must be numeric")
+  if(!(is.numeric(th.zscore)))
+    stop("'th.zscore' must be numeric")
+
+
+  # check the presence of NA or Inf
+  if (any(is.na(data)))
+    stop("NA values are not allowed in the 'data' matrix")
+  if (any(is.na(ranking)))
+    stop("NA values are not allowed in the 'ranking' matrix")
+  if (any(is.infinite(as.matrix(data))))
+    stop("Inf values are not allowed in the 'data' matrix")
+
+  # specific checks
+  if (all((as.matrix(data) %%1) == 0))
+    warning("It seems that you are using raw counts!
+            This function works with normalized data")
+  if(dim(as.matrix(data))[2] < dim(ranking)[1])
+    stop("ncol(as.matrix(data)) have not to be lower than nrow(ranking)")
+  if(dim(ranking)[2] != 2)
+    stop("'ranking' must have 2 columns")
+
 
 
   if (autoselect == "no"){
-    predictors <- rownames(ranking[1:n.pred,,drop=FALSE])
+    if(missing(th.zscore)){
+    if(n.pred < 1)
+      stop("'n.pred' must be greater than 0")
+    if(n.pred > dim(ranking)[1])
+      stop("'n.pred' must be lower than dim(ranking)[1]" )
+    predictors <- rownames(ranking[seq_len(n.pred),,drop=FALSE])}
+    else{
+      stop("'th.zscore' must be set only with 'autoselect = yes'")
+    }
+
   } else if (autoselect == "yes"){
+    if(missing(n.pred)){
     predictors <- rownames(
-      ranking[ranking$scaled.RReliefF>th.zscore,,drop=FALSE])
-  } else { stop("Please set 'yes or 'no' in 'autoselect' option.")}
+    ranking[ranking[,2]>th.zscore,, drop=FALSE])
+    } else {
+      stop("'n.pred' must be set only with 'autoselect = no'")
+    }
+  } else {
+    stop("Please set 'yes or 'no' in 'autoselect' option.")
+    }
 
   data_for_class <- data[,colnames(data) %in% predictors]
   cat(length(predictors),

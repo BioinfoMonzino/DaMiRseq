@@ -14,22 +14,33 @@ DaMiR.sampleFilt(data, th.corr = 0.9, type = c("spearman", "pearson"))
 \item{type}{Type of correlation metric; default is "spearman"}
 }
 \value{
-A \code{SummarizedExperiment} object which contains a normalized and filtered
-expression matrix (log2 scale) and a filtered data frame with 'class' and (optionally) covariates.
+A \code{SummarizedExperiment} object which contains a normalized
+ and filtered
+expression matrix (log2 scale) and a filtered data frame with 'class'
+and (optionally) variables.
 }
 \description{
-This function implements a sample-per-sample correlation. Samples with a mean
+This function implements a sample-per-sample correlation.
+ Samples with a mean
 correlation lower than a user's defined threshold will be filtered out.
 }
 \details{
-This step introduces a sample quality checkpoint. Global gene expression should,
-in fact, exhibit a high correlation among biological replicates; conversely, low correlated
-samples may be suspected to bear some technical artifact (e.g. poor RNA or library
-preparation quality), despite they may have passed sequencing quality checks. If not assessed,
-these samples may, thus, negatively affect all the downstream analysis. This function looks at
-the mean absolute correlation of each sample and removes those samples with a mean correlation
-lower than the value set in \code{th.corr} argument. This threshold may be specific for
-different experimental setting but should be as high as possible. For sequencing data we
+This step introduces a sample quality checkpoint. Global gene
+ expression should,
+in fact, exhibit a high correlation among biological replicates;
+conversely, low correlated
+samples may be suspected to bear some technical artifact (e.g. poor RNA
+ or library
+preparation quality), despite they may have passed sequencing quality
+ checks. If not assessed,
+these samples may, thus, negatively affect all the downstream analysis.
+ This function looks at
+the mean absolute correlation of each sample and removes those samples
+with a mean correlation
+lower than the value set in \code{th.corr} argument. This threshold may
+ be specific for
+different experimental setting but should be as high as possible.
+For sequencing data we
 suggest to set \code{th.corr} greater than 0.85.
 }
 \examples{

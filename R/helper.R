@@ -1,9 +1,9 @@
-#' @title Import RNA-Seq count data and covariates
+#' @title Import RNA-Seq count data and variables
 #'
 #' @description This is an helper function that allows the user to
 #' simultaneously
 #'  import counts, class (mandatory) and
-#'  covariate (optional) data, and creates a \code{SummarizedExperiment}
+#'  variables (optional) data, and creates a \code{SummarizedExperiment}
 #'  object.
 #'
 #' @param x  A tab-delimited file which contains
@@ -21,12 +21,12 @@
 #' function performs some checks on input data to ensure that only a
 #' matrix
 #' of raw counts is accordingly loaded. Other checks allows the
-#' identification of missing data (NA) in the data frame of the covariates
+#' identification of missing data (NA) in the data frame of the variables
 #'  of
 #' interest.
 #'
 #' @return A \code{SummarizedExperiment} object containing raw counts,
-#' class and (optionally) covariates of interest.
+#' class and (optionally) variables of interest.
 #'
 #'
 #' @references Morgan M, Obenchain V, Hester J and Pag\`es H (2016).
@@ -42,9 +42,9 @@
 #' # sample data are a small subset of Genotype-Tissue Expression (GTEx)
 #' # RNA-Seq database (dbGap Study Accession: phs000424.v6.p1):
 #' count_data <- read.delim("counts_import.txt")
-#' covariate_data <- read.delim("annotation_import.txt")
+#' variables_data <- read.delim("annotation_import.txt")
 #' # create a SummarizedExperiment object:
-#' SE<-DaMiR.makeSE(count_data, covariate_data)
+#' SE<-DaMiR.makeSE(count_data, variables_data)
 #' print(SE)
 #'
 #' @seealso
@@ -66,14 +66,14 @@ DaMiR.makeSE<-function(x, y) {
   if (!isTRUE("class" %in% colnames(y)))
     stop("'class' info is lacking!
          Include the variable 'class'
-         into the data frame and label it 'class'!")
+         in the 'y' data.frame and label it 'class'!")
   if (length(which(is.na(y)>0)))
     warning("There are some missing data, i.e.'NA'.
-            Covariates with 'NA' will be not used to draw diagnostic plots.
-            Consider to impute NAs for the covariates of interest.")
+            variables with 'NA' will be not used to draw diagnostic plots.
+            Consider to impute NAs for the variables of interest.")
   if (!(identical(colnames(x), rownames(y))))
     stop("colnames of raw counts table must equal
-         rownames of covariates data frame")
+         rownames of variables data frame")
 
   data<-SummarizedExperiment(assays=as.matrix(x), colData=as.data.frame(y))
   cat("Your dataset has:","\n")
@@ -84,7 +84,7 @@ DaMiR.makeSE<-function(x, y) {
       "and",
       length(which(levels(data@colData$class)[2]==data@colData$class)),
       levels(data@colData$class)[2], "\n")
-  cat(dim(data@colData)[2],"Covariates:", colnames(data@colData),";",
+  cat(dim(data@colData)[2],"variables:", colnames(data@colData),";",
       "\n","'class' included.")
   return(data)
 }
@@ -148,6 +148,17 @@ DaMiR.transpose <- function(data){
   # check arguments
   if (missing(data)) stop("'data' argument must be provided")
   if(!(is.matrix(data))) stop("'data' must be a matrixnumeric")
+
+  # check the presence of NA or Inf
+  if (any(is.na(data)))
+    stop("NA values are not allowed in the 'data' matrix")
+  if (any(is.infinite(data)))
+    stop("Inf values are not allowed in the 'data' matrix")
+  # specific checks
+  if (all((data %%1) == 0))
+    warning("It seems that you are using raw counts!
+            This function works with normalized data")
+
 
   data <- as.data.frame(t(data))
   colnames(data) <- gsub(".","__",colnames(data), fixed = TRUE)

@@ -7,30 +7,41 @@
 DaMiR.corrplot(sv, df, type = c("pearson", "spearman"), sig.level = 1e-04)
 }
 \arguments{
-\item{sv}{The matrix of sv identified by \code{\link{DaMiR.SV}} function}
+\item{sv}{The matrix of sv identified by \code{\link{DaMiR.SV}}
+function}
 
-\item{df}{A data frame with class and known covariates; at least one column with
+\item{df}{A data frame with class and known variables; at least
+one column with
 'class' label must be included}
 
-\item{type}{Type of correlation metric to be applied; default is "pearson"}
+\item{type}{Type of correlation metric to be applied; default is
+"pearson"}
 
-\item{sig.level}{The significance level of the correlation; default is 0.0001}
+\item{sig.level}{The significance level of the correlation; default
+is 0.0001}
 }
 \value{
-A correlation plot between sv and known covariates.
+A correlation plot between sv and known variables.
 }
 \description{
-This function easily draws the correlation plot of surrogate variables (sv)
-and covariates.
+This function easily draws the correlation plot of
+surrogate variables (sv)
+and variables.
 }
 \details{
-Factorial variables are allowed. They will be tranformed as numeric before
-applying the \code{\link{rcorr}} function of \code{Hmisc}.The \code{\link{corrplot}}
-function, which draws the plot, marks with a cross all the correlations that do not reach
-the significance threshold defined in the \code{sig.level} argument.This plot allows the user to
-identify those sv that present significant correlations with either technical and
+Factorial variables are allowed. They will be tranformed as
+ numeric before
+applying the \code{\link{rcorr}} function of \code{Hmisc}.The
+\code{\link{corrplot}}
+function, which draws the plot, marks with a cross all the correlations
+ that do not reach
+the significance threshold defined in the \code{sig.level} argument.This
+ plot allows the user to
+identify those sv that present significant correlations with either
+technical and
 biological known variables.
-Notably, none of the sv should present signifcant correlation with "class" variable.
+Notably, none of the sv should present signifcant correlation with
+"class" variable.
 }
 \examples{
 # use example data:

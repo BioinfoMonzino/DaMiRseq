@@ -4,7 +4,7 @@
 \alias{DaMiR.EnsembleLearning}
 \title{Build Classifier using 'Staking' Ensemble Learning strategy.}
 \usage{
-DaMiR.EnsembleLearning(data, classes, covariates, fSample.tr = 0.7,
+DaMiR.EnsembleLearning(data, classes, variables, fSample.tr = 0.7,
   fSample.tr.w = 0.7, iter = 100)
 }
 \arguments{
@@ -16,8 +16,7 @@ Each element represents the class label for each observation. Only
 two different class labels are
 allowed}
 
-\item{covariates}{An optional data frame containing other covariates
-
+\item{variables}{An optional data frame containing other variables
 (but without 'class' column). Each column represents a different
 covariate to be considered in the model}
 
@@ -42,8 +41,8 @@ A list containing:
 \description{
 This function implements a 'Stacking' ensemble learning
 strategy.
-Users can provide covariates (other than genomic features) which will
- be taken into account during
+Users can provide heterogeneous features (other than genomic features)
+which will be taken into account during
 classification model building. A 'two-classes' classification task is
  addressed.
 }

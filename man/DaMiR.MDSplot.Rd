@@ -7,12 +7,14 @@
 DaMiR.MDSplot(data, df, type = c("spearman", "pearson"))
 }
 \arguments{
-\item{data}{A SummarizedExperiment object or an expression matrix}
+\item{data}{A SummarizedExperiment object or an expression data.frame}
 
 \item{df}{A data frame with class; it can be directly subset from data}
 
-\item{type}{A character string specifing the metric to be applied to correlation
-analysis. Either "spearman" or "pearson" is allowed; default is "spearman"}
+\item{type}{A character string specifing the metric to be applied to
+correlation
+analysis. Either "spearman" or "pearson" is allowed; default is
+"spearman"}
 }
 \value{
 A MDS plot, using only 'class' information
@@ -21,8 +23,10 @@ A MDS plot, using only 'class' information
 A MDS plot is drawn in order to visualize class clustering.
 }
 \details{
-The MDS plot is drawn taking as input a dissimilarity matrix produced by either
-a sample-per-sample Pearson's or Spearman's correlation of normalized expression data.
+The MDS plot is drawn taking as input a dissimilarity matrix
+produced by either
+a sample-per-sample Pearson's or Spearman's correlation of normalized
+expression data.
 }
 \examples{
 # use example data:

@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper.R
 \name{DaMiR.makeSE}
 \alias{DaMiR.makeSE}
-\title{Import RNA-Seq count data and covariates}
+\title{Import RNA-Seq count data and variables}
 \usage{
 DaMiR.makeSE(x, y)
 }
@@ -21,13 +21,13 @@ and classification; the class column must be labeled as 'class'}
 }
 \value{
 A \code{SummarizedExperiment} object containing raw counts,
-class and (optionally) covariates of interest.
+class and (optionally) variables of interest.
 }
 \description{
 This is an helper function that allows the user to
 simultaneously
  import counts, class (mandatory) and
- covariate (optional) data, and creates a \code{SummarizedExperiment}
+ variables (optional) data, and creates a \code{SummarizedExperiment}
  object.
 }
 \details{
@@ -35,7 +35,7 @@ Before creating a \code{SummarizedExperiment} object, the
 function performs some checks on input data to ensure that only a
 matrix
 of raw counts is accordingly loaded. Other checks allows the
-identification of missing data (NA) in the data frame of the covariates
+identification of missing data (NA) in the data frame of the variables
  of
 interest.
 }
@@ -46,9 +46,9 @@ setwd(rawdata.path)
 # sample data are a small subset of Genotype-Tissue Expression (GTEx)
 # RNA-Seq database (dbGap Study Accession: phs000424.v6.p1):
 count_data <- read.delim("counts_import.txt")
-covariate_data <- read.delim("annotation_import.txt")
+variables_data <- read.delim("annotation_import.txt")
 # create a SummarizedExperiment object:
-SE<-DaMiR.makeSE(count_data, covariate_data)
+SE<-DaMiR.makeSE(count_data, variables_data)
 print(SE)
 
 }

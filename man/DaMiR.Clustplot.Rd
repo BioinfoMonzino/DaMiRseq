@@ -8,23 +8,28 @@ DaMiR.Clustplot(data, df, type_row = c("euclidean", "correlation"),
   type_col = c("euclidean", "correlation"))
 }
 \arguments{
-\item{data}{A SummarizedExpression object, a data frame or an expression matrix where
+\item{data}{A SummarizedExpression object, or an expression data frame
+ where
 rows and cols should be, respectively, observations and features}
 
-\item{df}{A data frame with class and (optionally) known covariates; at least one column with
+\item{df}{A data frame with class and (optionally) known variables;
+at least one column with
 'class' label must be included}
 
-\item{type_row}{The metric to be used to cluster rows. Either "euclidean" or "correlation"
-is allowed; default is "euclidean"}
+\item{type_row}{The metric to be used to cluster rows. Either
+"euclidean" or "correlation"
+ is allowed; default is "euclidean"}
 
-\item{type_col}{The metric to be used to cluster cols. Either "euclidean" or "correlation"
-is allowed; default is "euclidean"}
+\item{type_col}{The metric to be used to cluster cols. Either
+"euclidean" or "correlation"
+ is allowed; default is "euclidean"}
 }
 \value{
 A clustering dendrogram and heatmap.
 }
 \description{
-The function helps to draw a clustering dendrogram and a heatmap of expression data.
+The function helps to draw a clustering dendrogram and
+ a heatmap of expression data.
 }
 \examples{
 # use example data:
@@ -34,7 +39,8 @@ data(df)
 data_norm_red<-data_norm[1:100,]
 # Draw heatmap: samples (cols) per genes (rows)
 # and use variable annotation:
-DaMiR.Clustplot(data=data_norm_red, df=df, type_row="correlation", type_col="correlation")
+DaMiR.Clustplot(data=data_norm_red,
+df=df, type_row="correlation", type_col="correlation")
 
 }
 \author{

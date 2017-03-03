@@ -3,11 +3,12 @@
 \docType{data}
 \name{SEtest_norm}
 \alias{SEtest_norm}
-\title{Example gene-expression dataset for DaMiRseq package}
+\title{A sample dataset with a normalized count matrix for "testthat"
+functions.}
 \format{A SummarizedExperiment object containing an assay of
 100 genes (rows) and 11 samples (columns) and a colData with 5 variables}
 \usage{
-SE
+SEtest_norm
 }
 \value{
 An example dataset for \code{DaMiRseq} package

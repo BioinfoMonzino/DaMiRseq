@@ -13,7 +13,7 @@ counts by vst or rlog. A log2 transformed expression matrix is also
  accepted.
 Rows and Cols should be, respectively, observations and features}
 
-\item{df}{A data frame with class and known covariates; at least one
+\item{df}{A data frame with class and known variables; at least one
 column with
 'class' label must be included}
 

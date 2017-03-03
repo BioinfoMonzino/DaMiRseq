@@ -18,7 +18,7 @@ the data}
 \value{
 A SummarizedExpression object containing a matrix of
 log-expression
-values with sv effects removed and the data frame of the covariates.
+values with sv effects removed and the data frame of the variables.
 }
 \description{
 This function removes surrogate or other confounding

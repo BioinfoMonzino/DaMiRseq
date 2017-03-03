@@ -14,7 +14,7 @@
 #'
 #' @return A SummarizedExpression object containing a matrix of
 #' log-expression
-#' values with sv effects removed and the data frame of the covariates.
+#' values with sv effects removed and the data frame of the variables.
 #'
 #' @author Mattia Chiesa, Luca Piacentini
 #'
@@ -32,24 +32,60 @@
 #'
 DaMiR.SVadjust <- function(data, sv, n.sv){
 
-  # check arguments
-  if (missing(data)) stop("'data' argument must be provided")
-  # if (missing(df)) stop("'df' argument must be provided")
-  if (missing(sv)) stop("'sv' argument must be provided")
+  # check missing arguments
+  if (missing(data))
+    stop("'data' argument must be provided")
+  if (missing(sv))
+    stop("'sv' argument must be provided")
   if (missing(n.sv)){
     n.sv=dim(sv)[2]
-    surr_variables<-sv[, 1:n.sv]
-
-  } else {
-    if (n.sv> dim(sv)[2])
-      stop ("'n.sv' must be <= to the number of variables in sv matrix")
-    surr_variables<-sv[, 1:n.sv]
+    cat("All the sv have been used to adjust the data")
   }
 
+  # check the type of argument
   if(!(is(data, "SummarizedExperiment")))
     stop("'data' must be a 'SummarizedExperiment' object")
-  if(!(is.matrix(sv))) stop("'sv' must be a matrix")
-  if(!(is.numeric(n.sv))) stop("'n.sv' must be numeric")
+  if(!(is.matrix(sv)))
+    stop("'sv' must be a matrix")
+  if(!(is.numeric(n.sv)))
+    stop("'n.sv' must be numeric")
+
+  # check the presence of NA or Inf
+  if (any(is.na(assay(data))))
+    stop("NA values are not allowed in the 'data' matrix")
+  if (any(is.na(sv)))
+    stop("NA values are not allowed in the 'sv' matrix")
+  if (any(is.na(n.sv)))
+    stop("NA values are not allowed in the 'n.sv' argument")
+  if (any(is.infinite(assay(data))))
+    stop("Inf values are not allowed in the 'data' matrix")
+  if (any(is.infinite(sv)))
+    stop("Inf values are not allowed in the 'sv' matrix")
+  if (any(is.infinite(n.sv)))
+    stop("Inf values are not allowed in the 'n.sv' argument")
+
+  # specific checks
+  if ((n.sv %% 1) != 0)
+    stop("'n.sv' must be a number without decimals")
+  if (n.sv > dim(sv)[2])
+    stop ("'n.sv' must be <= to the number of variables in sv matrix")
+  if (n.sv == 0)
+    stop ("At least 1 sv must be provided")
+  if (n.sv < 1)
+    stop ("Negative values for 'n.sv' are not allowed")
+  if(!("class" %in% colnames(colData(data))))
+    stop("'class' info is lacking!
+         Include the variable 'class'
+         in colData(data) and label it 'class'!")
+  if (all((assay(data) %%1) == 0))
+    warning("It seems that you are using raw counts!
+            This function works with normalized data")
+  if(dim(assay(data))[2] != dim(sv)[1])
+    stop("ncol(assay(data)) must be equal to nrow(sv)")
+
+
+
+  surr_variables<-sv[, seq_len(n.sv)]
 
   data_adjust <- removeBatchEffect(assay(data),
                                    design = model.matrix(~data@colData$class),

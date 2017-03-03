@@ -7,21 +7,26 @@
 DaMiR.Allplot(data, df, type = c("spearman", "pearson"))
 }
 \arguments{
-\item{data}{A SummarizedExperiment object or an expression matrix}
+\item{data}{A SummarizedExperiment object or an expression data frame}
 
-\item{df}{A data frame with class and known covariates (or a subset of them); at least one column with
+\item{df}{A data frame with class and known variables (or a subset
+of them); at least one column with
 'class' label must be included}
 
-\item{type}{A character string specifing the metric to be applied to correlation
-analysis. Either "spearman" or "pearson" is allowed; default is "spearman"}
+\item{type}{A character string specifing the metric to be applied to
+ correlation
+analysis. Either "spearman" or "pearson" is allowed; default is
+"spearman"}
 }
 \value{
 A dendrogram and heatmap, MDS plot(s) and a RLE boxplot
 }
 \description{
-This is a helper function to easily draw (1) clustering dendrogram and
+This is a helper function to easily draw (1) clustering
+ dendrogram and
 heatmap of a sample-per-sample correlation matrix, (2)
-multidimensional scaling plots (MDS)  and (3) relative log expression (RLE) boxplots
+multidimensional scaling plots (MDS)  and (3) relative log expression
+ (RLE) boxplots
 of expression data.
 }
 \details{

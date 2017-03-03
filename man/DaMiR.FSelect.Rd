@@ -8,11 +8,12 @@ DaMiR.FSelect(data, df, th.corr = 0.6, type = c("spearman", "pearson"),
   th.VIP = 3)
 }
 \arguments{
-\item{data}{A transposed data frame or a matrix of normalized expression data.
+\item{data}{A transposed data frame or a matrix of normalized expression
+ data.
 Rows and Cols should be,
 respectively, observations and features}
 
-\item{df}{A data frame with known covariates; at least one column
+\item{df}{A data frame with known variables; at least one column
 with
 'class' label must be included}
 
@@ -29,7 +30,7 @@ variables; default is 3}
 A list containing:
 \itemize{
   \item An expression matrix with only informative features.
-  \item A data frame with class and optional covariates information.
+  \item A data frame with class and optional variables information.
 }
 }
 \description{

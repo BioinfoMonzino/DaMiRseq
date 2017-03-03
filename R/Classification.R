@@ -2,8 +2,8 @@
 #'
 #' @description This function implements a 'Stacking' ensemble learning
 #' strategy.
-#' Users can provide covariates (other than genomic features) which will
-#'  be taken into account during
+#' Users can provide heterogeneous features (other than genomic features)
+#' which will be taken into account during
 #' classification model building. A 'two-classes' classification task is
 #'  addressed.
 #'
@@ -13,8 +13,7 @@
 #'  Each element represents the class label for each observation. Only
 #'  two different class labels are
 #'  allowed
-#' @param covariates An optional data frame containing other covariates
-#'
+#' @param variables An optional data frame containing other variables
 #' (but without 'class' column). Each column represents a different
 #' covariate to be considered in the model
 #' @param fSample.tr Fraction of samples to be used as training set;
@@ -75,21 +74,64 @@
 #'
 DaMiR.EnsembleLearning <- function(data,
                                    classes,
-                                   covariates,
+                                   variables,
                                    fSample.tr=0.7,
                                    fSample.tr.w=0.7,
                                    iter=100){
-  # check arguments
-  if (missing(data)) stop("'data' argument must be provided")
-  if (missing(classes)) stop("'classes' argument must be provided")
+  # check missing arguments
+  if (missing(data))
+    stop("'data' argument must be provided")
+  if (missing(classes))
+    stop("'classes' argument must be provided")
 
-  if(!(is.data.frame(data))) stop("'data' must be a data frame")
-  if(!(is.numeric(fSample.tr))) stop("'fSample.tr' must be numeric")
-  if(!(is.numeric(fSample.tr.w))) stop("'fSample.tr.w' must be numeric")
-  if(!(is.numeric(iter))) stop("'iter' must be numeric")
+  # check the type of argument
+  if(!(is.data.frame(data)))
+    stop("'data' must be a data frame")
+  if(!(is.numeric(fSample.tr)))
+    stop("'fSample.tr' must be numeric")
+  if(!(is.numeric(fSample.tr.w)))
+    stop("'fSample.tr.w' must be numeric")
+  if(!(is.numeric(iter)))
+    stop("'iter' must be numeric")
+  if(!(is.factor(classes)))
+    stop("'classes' must be a factor")
 
-  # suppress warnings
-  options( warn = -1 )
+  # specific checks
+  if (fSample.tr >0.9 | fSample.tr < 0.5)
+    stop("'fSample.tr' must be between 0.5 and 1")
+  if (fSample.tr.w >0.9 | fSample.tr.w < 0.5)
+    stop("'th.corr' must be between 0.5 and 1")
+  if (iter < 1)
+    stop("'iter' must be greater than 1")
+  if((dim(data)[1]-round(dim(data)[1]*fSample.tr)) == 0)
+    stop("The Test Set is not available. Decrease 'fSample.tr'
+         or increase the number of observation.")
+  if((dim(data)[1]-round(dim(data)[1]*fSample.tr.w)) == 0)
+    stop("A Test Set available to weight classifiers.
+         Decrease 'fSample.tr.w' or increase the number of observation.")
+  if(length(classes) != dim(data)[1])
+    stop("length(classes) must be equal to dim(data)[1]")
+
+  if (missing(variables)){
+    data <- data
+  } else {
+    variables<-as.data.frame(variables)
+    if(!(is.data.frame(variables)))
+      stop("'variables' must be a data frame") ###
+
+    for (ic in seq_len(dim(variables)[2])){
+      if(isTRUE(is.factor(variables[,ic]))){
+        variables[,ic]<-as.numeric(variables[,ic])
+      }
+    }
+    data <- cbind(data, variables)
+  }
+
+  # check the presence of NA or Inf
+  if (any(is.na(data)))
+    stop("NA values are not allowed in the 'data' matrix")
+  if (any(is.infinite(as.matrix(data))))
+    stop("Inf values are not allowed in the 'data' matrix")
 
   # Initialize output tables
   acc.Class <- matrix(nrow = iter, ncol = 7)
@@ -101,20 +143,6 @@ DaMiR.EnsembleLearning <- function(data,
   nSample.cl1 <- round(s_cl1*fSample.tr)
   nSample.cl2 <- round(s_cl2*fSample.tr)
 
-  if (missing(covariates)){
-    data <- data
-  } else {
-    covariates<-as.data.frame(covariates)
-    if(!(is.data.frame(covariates)))
-      stop("'covariates' must be a data frame") ###
-
-    for (ic in seq_len(dim(covariates)[2])){
-      if(isTRUE(is.factor(covariates[,ic]))){
-        covariates[,ic]<-as.numeric(covariates[,ic])
-        }
-      }
-    data <- cbind(data, covariates)
-  }
 
   patt_cl1<-paste(c("^", levels(classes)[1], "$"), sep="", collapse="")
   patt_cl2<-paste(c("^", levels(classes)[2], "$"), sep="", collapse="")
@@ -136,18 +164,18 @@ DaMiR.EnsembleLearning <- function(data,
       length(grep(patt_cl1, classes))
 
     # TrainingSet and TestSet
-    classes_ts <- classes[c(index_cl1DM[-(1:nSample.cl1)],
-                            index_cl2DM[-(1:nSample.cl2)])]
-    testSet <- data[c(index_cl1DM[-(1:nSample.cl1)],
-                      index_cl2DM[-(1:nSample.cl2)]),]
+    classes_ts <- classes[c(index_cl1DM[-(seq_len(nSample.cl1))],
+                            index_cl2DM[-(seq_len(nSample.cl2))])]
+    testSet <- data[c(index_cl1DM[-(seq_len(nSample.cl1))],
+                      index_cl2DM[-(seq_len(nSample.cl2))]),,drop=FALSE]
     testSet$classes <- classes_ts
     testSet_lr <- testSet
     testSet_lr$classes <- as.integer(classes_ts)-1
 
-    classes_tr <- classes[c(index_cl1DM[1:nSample.cl1],
-                            index_cl2DM[1:nSample.cl2])]
-    trainingSet <- data[c(index_cl1DM[1:nSample.cl1],
-                          index_cl2DM[1:nSample.cl2]),]
+    classes_tr <- classes[c(index_cl1DM[seq_len(nSample.cl1)],
+                            index_cl2DM[seq_len(nSample.cl2)])]
+    trainingSet <- data[c(index_cl1DM[seq_len(nSample.cl1)],
+                          index_cl2DM[seq_len(nSample.cl2)]),,drop=FALSE]
     trainingSet$classes <- classes_tr
     trainingSet_lr <- trainingSet
     trainingSet_lr$classes <- as.integer(classes_tr)-1
@@ -164,22 +192,27 @@ DaMiR.EnsembleLearning <- function(data,
     nSample2.cl1 <- round(s_cl1*fSample.tr.w)
     nSample2.cl2 <- round(s_cl2*fSample.tr.w)
 
-    classes_ts_DM <- classes_tr[c(index_cl1_DM2[-(1:nSample2.cl1)],
-                                  index_cl2_DM2[-(1:nSample2.cl2)])]
-    testSet_DM <- trainingSet[c(index_cl1_DM2[-(1:nSample2.cl1)],
-                                index_cl2_DM2[-(1:nSample2.cl2)]),]
-    testSet_lr_DM <- trainingSet_lr[c(index_cl1_DM2[-(1:nSample2.cl1)],
-                                      index_cl2_DM2[-(1:nSample2.cl2)]),]
+    classes_ts_DM <- classes_tr[c(index_cl1_DM2[-(seq_len(nSample2.cl1))],
+                                  index_cl2_DM2[-(seq_len(nSample2.cl2))])]
+    testSet_DM <- trainingSet[c(index_cl1_DM2[-(seq_len(nSample2.cl1))],
+                                index_cl2_DM2[-(seq_len(nSample2.cl2))]),,
+                              drop=FALSE]
+    testSet_lr_DM <- trainingSet_lr[c(index_cl1_DM2[-(seq_len(nSample2.cl1))],
+                                      index_cl2_DM2[-(seq_len(nSample2.cl2))]),,
+                                    drop=FALSE]
 
-    classes_tr_DM <- classes_tr[c(index_cl1_DM2[1:nSample2.cl1],
-                                  index_cl2_DM2[1:nSample2.cl2])]
-    trainingSet_DM <- trainingSet[c(index_cl1_DM2[1:nSample2.cl1],
-                                    index_cl2_DM2[1:nSample2.cl2]),]
-    trainingSet_lr_DM <- trainingSet_lr[c(index_cl1_DM2[1:nSample2.cl1],
-                                          index_cl2_DM2[1:nSample2.cl2]),]
+    classes_tr_DM <- classes_tr[c(index_cl1_DM2[seq_len(nSample2.cl1)],
+                                  index_cl2_DM2[seq_len(nSample2.cl2)])]
+    trainingSet_DM <- trainingSet[c(index_cl1_DM2[seq_len(nSample2.cl1)],
+                                    index_cl2_DM2[seq_len(nSample2.cl2)]),,
+                                  drop=FALSE]
+    trainingSet_lr_DM <- trainingSet_lr[c(index_cl1_DM2[seq_len(nSample2.cl1)],
+                                          index_cl2_DM2[seq_len(nSample2.cl2)]),,
+                                        drop=FALSE]
 
     ###############################################
     ## Training several models
+    options( warn = -1 )
 
     # Random Forest
     model_rf <- randomForest(formula = formula_DM,
@@ -324,7 +357,7 @@ DaMiR.EnsembleLearning <- function(data,
 
 
     cl_comp <-as.numeric(classes_ts)-1
-    for (i in 1:length(testSet[,1])){
+    for (i in seq_len(length(testSet[,1]))){
       # Prediction
 
       if (predict(model_rf,testSet[i,]) == levels(classes_ts)[1])

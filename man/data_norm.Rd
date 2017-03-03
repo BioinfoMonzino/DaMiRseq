@@ -3,7 +3,7 @@
 \docType{data}
 \name{data_norm}
 \alias{data_norm}
-\title{A dataset with count matrix to test several DaMiRseq functions:
+\title{A dataset with a normalized matrix to test several DaMiRseq functions:
 sample data are a subset of Genotype-Tissue Expression (GTEx)
 RNA-Seq database (dbGap Study Accession: phs000424.v6.p1)}
 \format{A SummarizedExperiment object containing an assay of
@@ -15,7 +15,7 @@ data_norm
 An example dataset for \code{DaMiRseq} package
 }
 \description{
-A dataset with count matrix to test several DaMiRseq functions:
+A dataset with a normalized matrix to test several DaMiRseq functions:
 sample data are a subset of Genotype-Tissue Expression (GTEx)
 RNA-Seq database (dbGap Study Accession: phs000424.v6.p1)
 }
