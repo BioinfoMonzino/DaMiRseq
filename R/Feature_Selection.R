@@ -369,7 +369,7 @@ DaMiR.FSort <- function(data, df, fSample=1){
     stop("Inf values are not allowed in the 'data' matrix")
 
   # specific checks
-  if (fSample >1 | fSample < 0)
+  if (fSample >1 | fSample <= 0)
     stop("'fSample must be between 0 and 1")
   if (all((as.matrix(data) %%1) == 0))
     warning("It seems that you are using raw counts!

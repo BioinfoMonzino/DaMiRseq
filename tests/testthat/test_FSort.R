@@ -1,4 +1,4 @@
-## create sample dataset
+# create sample dataset
 samples_num <- 30
 genes_num <- 50
 
@@ -26,18 +26,17 @@ expect_true('class' %in% colnames(covar_test))
 expect_error(DaMiR.FSort())
 expect_error(DaMiR.FSort("character","character"))
 expect_error(DaMiR.FSort(data_norm_test,
-                           covar_test,
+                         covar_test,
                            fSample = "character"))
 
 # less stringent argument
-expect_warning(DaMiR.FSort(data_norm_test,
+expect_error(DaMiR.FSort(data_norm_test,
                          covar_test,
                          fSample = 0))
 #launch script
 testOut <- DaMiR.FSort(data_norm_test,
-                         covar_test)
+                       covar_test)
 
 # check results
-expect_true(dim(testOut)[1] == dim(data_norm_test)[2])
 expect_true(dim(testOut)[2] == 2)
 expect_true(all(testOut$RReliefF<=1))
