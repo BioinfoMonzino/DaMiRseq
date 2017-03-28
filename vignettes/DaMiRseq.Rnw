@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{Data Mining for RNA-seq data: normalization, features selection and classification - DaMiRseq package}
+%\VignetteIndexEntry{Data Mining for RNA-seq data: normalization, features selection and classification}
 %\VignettePackage{DaMiRseq}
 %\VignetteEngine{knitr::knitr}
 
@@ -50,7 +50,7 @@ opts_chunk$set(
 \maketitle
 
 \begin{abstract}
- RNA-Seq is increasingly the method of choice for researchers studying the transcriptome. The strategies to analyze such complex high-dimensional data rely on data mining and statistical learning techniques. The \damir{} package offers a tidy pipeline that includes data mining procedures for data handling and implementation of prediction learning methods to build classification models. The package accepts any kind of data presented as a table of raw counts and allows the inclusion of variables that occur with the experimental setting. A series of functions enables data cleaning by filtering genomic features and samples, data adjustment by identifying and removing the unwanted source of variation (\textit{i.e.} batches and confounding factors) and to select the best predictors for modeling. Finally, a ``Stacking'' ensemble learning technique is applied to build a robust classification model. Every step includes a checkpoint for assessing the effects of data management using diagnostic plots, such as clustering and heatmaps, RLE boxplots, MDS or correlation plots.
+ RNA-Seq is increasingly the method of choice for researchers studying the transcriptome. The strategies to analyze such complex high-dimensional data rely on data mining and statistical learning techniques. The \damir{} package offers a tidy pipeline of data mining procedures to identify transcriptional biomarkers and exploit them for classification purposes. The package accepts any kind of data presented as a table of raw counts and allows the inclusion of variables that occur with the experimental setting. A series of functions enables data cleaning by filtering genomic features and samples, data adjustment by identifying and removing the unwanted source of variation (\textit{i.e.} batches and confounding factors) and to select the best predictors for modeling. Finally, a ``Stacking'' ensemble learning technique is applied to build a robust classification model. Every step includes a checkpoint for assessing the effects of data management using diagnostic plots, such as clustering and heatmaps, RLE boxplots, MDS or correlation plots.
 \end{abstract}
 
 \packageVersion{\Sexpr{BiocStyle::pkg_ver("DaMiRseq")}}
@@ -105,10 +105,10 @@ library(DaMiRseq)
 # rawdata.path <- system.file(package = "DaMiRseq","extdata")
 # setwd(rawdata.path)
 # filecounts <- list.files(rawdata.path, full.names = TRUE)[1]
-# filecovariates <- list.files(rawdata.path, full.names = TRUE)[2]
+# filevariables <- list.files(rawdata.path, full.names = TRUE)[2]
 # count_data <- read.delim(filecounts)
-# covariate_data <- read.delim(filecovariates)
-# SE<-DaMiR.makeSE(count_data, covariate_data)
+# variables_data <- read.delim(filevariables)
+# SE<-DaMiR.makeSE(count_data, variables_data)
 
 @
 
@@ -205,7 +205,7 @@ After data normalization, we propose to test for the presence of surrogate varia
   \FloatBarrier
 
 
-  \subsubsection{Correlation between sv and known covariates} \label{sv_corr}
+  \subsubsection{Correlation between sv and known variables} \label{sv_corr}
   Once the sv have been calculated, we may inquire whether these sv capture an unwanted source of variation or may be associated with known variables that the user does not
   wish to correct. For this purpose, we correlate the sv with the known variables stored in the ``data\_filt'' object, to decide if all of these sv or only a subset of them should be used to
   adjust the data.
@@ -222,7 +222,7 @@ After data normalization, we propose to test for the presence of surrogate varia
 
   \begin{figure}[!htbp]
     \includegraphics{figure/chu_9-1}
-    \caption{Correlation Plot between sv and known variables. This plot highligths the correlation between sv and known covariates, using both color gradient and circle size. The color ranges from dark red (correlation = -1) to dark blue (correlation = 1) and the circle size is maximum for a correlation equal to 1 or -1 and decreases up to zero. Black crosses help to identify non-significant correlations. This plot shows that the first to the third sv do not significantly correlate with any variable, while the fourth is significantly correlated with the ``center'' variable.}
+    \caption{Correlation Plot between sv and known variables. This plot highligths the correlation between sv and known variables, using both color gradient and circle size. The color ranges from dark red (correlation = -1) to dark blue (correlation = 1) and the circle size is maximum for a correlation equal to 1 or -1 and decreases up to zero. Black crosses help to identify non-significant correlations. This plot shows that the first to the third sv do not significantly correlate with any variable, while the fourth is significantly correlated with the ``center'' variable.}
     \label{fig_corr}
   \end{figure}
   \FloatBarrier
@@ -240,25 +240,25 @@ Now, 'data\_adjust' object contains a numeric matrix of log2-expression values w
 Quality Control (QC) is an essential part of any data analysis workflow, because it allows checking the effects of each action, such as filtering, normalization, and data cleaning.
 In this context, the function \Rfunction{DaMiR.Allplot} helps identifying how different arguments or specific tasks, such as filtering or normalization, affect the data. Several diagnostic plots are generated:
 \begin{description}[align=left]
-  \item [Heatmap] - A distance matrix, based on sample-by-sample correlation, is represented by heatmap and dendrogram using \CRANpkg{pheatmap} package. In addition to 'class', all covariates are shown, using color codes; this helps to simultaneously identify outlier samples and specific clusters, related with class or other variables;
+  \item [Heatmap] - A distance matrix, based on sample-by-sample correlation, is represented by heatmap and dendrogram using \CRANpkg{pheatmap} package. In addition to 'class', all variables are shown, using color codes; this helps to simultaneously identify outlier samples and specific clusters, related with class or other variables;
 
   \item [MultiDimensional Scaling (MDS) plots] - MDS plot, drawn by \CRANpkg{ggplot2} package \cite{wickham2016ggplot2}, provides a visual representation of pattern of proximities (\textit{e.g.} similarities or distances) among a set of samples, and allows the identification of natural clusters. For the 'class' and for each variable a MDS plot is drawn.
 
   \item [Relative Log Expression (RLE) boxplot] - This plot, drawn by \Biocpkg{EDASeq} package \cite{risso2011gc}, helps to visualize the differences between the distributions across samples: medians of each RLE boxplot should be ideally centered around zero and a large shift from zero suggests that samples could have quality problems. Here, different colors means different classes.
 \end{description}
 In this vignette, \Rfunction{DaMiR.Allplot} is used to appreciate the effect of data adjusting (see Section~\ref{adj_data}). First, we check how data appear just after normalization: the heatmap and RLE plot in Figure~\ref{fig_n1} (upper and lower panel, respectively) and MDS plots in Figures~\ref{fig_n3} and ~\ref{fig_n4} do not highlight the presence of specific clusters.\\
-\textbf{Note.} If a variable contains missing data (i.e. ``NA'' values), the function cannot draw the plot showing variable information. The user is, however, encouraged to impute missing data if s/he considers it meaningful to plot the covariate of interest for ``diagnosis'' purposes.
+\textbf{Note.} If a variable contains missing data (i.e. ``NA'' values), the function cannot draw the plot showing variable information. The user is, however, encouraged to impute missing data if s/he considers it meaningful to plot the variable of interest for ``diagnosis'' purposes.
   <<chu_11, dev="pdf">>=
   # After gene filtering and normalization
   DaMiR.Allplot(data_filt, colData(data_filt))
   @
-The \Rcode{df} argument has been supplied using \Rfunction{colData()} function that returns the data frame of covariates stored into the ``data\_filt'' object. Here, we used all the variables included into the data frame (\textit{e.g.} center, sex, age, death and class), although it is possible to use only a subset of them to be plotted.
+The \Rcode{df} argument has been supplied using \Rfunction{colData()} function that returns the data frame of variables stored into the ``data\_filt'' object. Here, we used all the variables included into the data frame (\textit{e.g.} center, sex, age, death and class), although it is possible to use only a subset of them to be plotted.
 
 % Heatmap and RLE
 \begin{figure}[!htbp]
 \includegraphics{figure/chu_11-1}
 \includegraphics{figure/chu_11-7}
-\caption{Heatmap and RLE. Heatmap (upper panel): colors in heatmap highlight the distance matrix, obtained by Spearman's correlation metric: color gradient ranges from \textit{dark green}, meaning 'minimum distance' (\textit{i.e.} dissimilarity = 0, correlation = 1), to \textit{light green green}. On the top of heatmap, horizontal bars represent class and covariates. Each variable is differently colored (see legend). On the top and on the left side of the heatmap the dendrograms are drawn. Clusters can be easily identified.\\
+\caption{Heatmap and RLE. Heatmap (upper panel): colors in heatmap highlight the distance matrix, obtained by Spearman's correlation metric: color gradient ranges from \textit{dark green}, meaning 'minimum distance' (\textit{i.e.} dissimilarity = 0, correlation = 1), to \textit{light green green}. On the top of heatmap, horizontal bars represent class and variables. Each variable is differently colored (see legend). On the top and on the left side of the heatmap the dendrograms are drawn. Clusters can be easily identified.\\
 RLE (lower panel): a boxplot of the distribution of expression values computed as the difference between the expression of each gene and the median expression of that gene accross all samples. Here, since all medians are very close to zero, it appears that all the samples are well-normalized and do not present any quality problems.
 }
 \label{fig_n1}
@@ -386,7 +386,7 @@ Feature Importance Plot. The dotchart shows the list of top 50 genes, sorted by 
 \begin{figure}[!htbp]
 \includegraphics{figure/chu_16-1}
 \caption{
-Clustergram. The clustergram is generated by using the expression values of the 5 predictors selected by \Rfunction{DaMiR.FBest} function. As for the heatmap generated by \Rfunction{DaMiR.Allplot}, 'class' and covariates are drawn as horizontal and color coded bars.
+Clustergram. The clustergram is generated by using the expression values of the 5 predictors selected by \Rfunction{DaMiR.FBest} function. As for the heatmap generated by \Rfunction{DaMiR.Allplot}, 'class' and variables are drawn as horizontal and color coded bars.
 }
 \label{fig_n9}
 \end{figure}
