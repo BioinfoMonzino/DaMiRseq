@@ -15,7 +15,7 @@
 
 \documentclass{article}
 <<style-knitr, eval=TRUE, echo=FALSE, results="asis">>=
-BiocStyle::latex2(relative.path = TRUE)
+BiocStyle::latex(relative.path = TRUE)
 @
 \usepackage{subfig}% for combining multiple plots in one figure
 \usepackage[section]{placeins}
