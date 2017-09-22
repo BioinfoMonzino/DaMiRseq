@@ -440,9 +440,9 @@ DaMiR.EnsembleLearning <- function(data,
                                        'LR',
                                        '3kNN'))
 
-  colnames(acc_dotplot) <- c("Predictors","Accuracy")
-  print(ggplot(acc_dotplot, aes(x=Predictors,y=Accuracy)) +
-    geom_violin(aes(fill=factor(Predictors)),na.rm = TRUE)+
+  colnames(acc_dotplot) <- c("Classifiers","Accuracy")
+  print(ggplot(acc_dotplot, aes(x=Classifiers,y=Accuracy)) +
+    geom_violin(aes(fill=factor(Classifiers)),na.rm = TRUE)+
     geom_dotplot(binaxis='y',
                  stackdir='center',
                  stackratio=1.5,
