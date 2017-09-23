@@ -1,5 +1,6 @@
 Package: DaMiRseq
 Type: Package
+<<<<<<< HEAD
 Date: 2017-09-22
 Title: Data Mining for RNA-seq data: normalization,
     feature selection and classification
@@ -19,6 +20,26 @@ Description: The DaMiRseq package offers a tidy pipeline of data mining
 		and to select the best predictors for modeling.
 		Finally, a "Stacking" ensemble learning technique is applied
 		to build a robust classification model. Every step
+=======
+Date: 2017-03-03
+Title: Data Mining for RNA-seq data: normalization, feature selection
+        and classification
+Version: 1.1.1
+Author: Mattia Chiesa <mattia.chiesa@hotmail.it>, Luca Piacentini
+        <luca.piacentini@cardiologicomonzino.it>
+Maintainer: Mattia Chiesa <mattia.chiesa@hotmail.it>
+Description: The DaMiRseq package offers a tidy pipeline of data mining
+        procedures to identify transcriptional biomarkers and exploit 
+		them for classification purposes.. The package accepts any kind
+		of data presented as a table of raw counts and allows including
+        covariates that occur with the experimental setting. A series
+        of functions enable the user to clean up the data by filtering
+        genomic features and samples, to adjust data by identifying and
+        removing the unwanted source of variation (i.e. batches and
+        confounding factors) and to select the best predictors for
+        modeling. Finally, a ``Stacking'' ensemble learning technique
+        is applied to build a robust classification model. Every step
+>>>>>>> upstream/master
         includes a checkpoint that the user may exploit to assess the
         effects of data management by looking at diagnostic plots, such
         as clustering and heatmaps, RLE boxplots, MDS or correlation
@@ -29,9 +50,15 @@ LazyData: true
 biocViews: Sequencing, RNASeq, Classification
 VignetteBuilder: knitr
 Imports: DESeq2, limma, EDASeq, RColorBrewer, sva, Hmisc, pheatmap,
+<<<<<<< HEAD
     FactoMineR, corrplot, randomForest, e1071, caret, MASS, lubridate,
     plsVarSel, kknn, FSelector, methods, stats, utils, graphics, grDevices,
     reshape2
+=======
+        FactoMineR, corrplot, randomForest, e1071, caret, MASS,
+        lubridate, plsVarSel, kknn, FSelector, methods, stats, utils,
+        graphics, grDevices, reshape2
+>>>>>>> upstream/master
 Suggests: BiocStyle, knitr, testthat
 Depends: R (>= 3.4), SummarizedExperiment, ggplot2
 RoxygenNote: 5.0.1
