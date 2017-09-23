@@ -34,7 +34,6 @@ expect_error(DaMiR.EnsembleLearning(data_norm_test,
                                     covar_test,
                                     iter="character"))
 
-<<<<<<< HEAD
 #launch script
 set.seed(123)
 iter_set <-1
@@ -45,16 +44,5 @@ expect_true(dim(testOut$accuracy)[1] == iter_set)
 expect_true(dim(testOut$accuracy)[2] == 7)
 expect_true(all(testOut$accuracy<=100))
 expect_true(all(testOut$accuracy>=0))
-=======
-# #launch script
-# set.seed(123)
-# iter_set <-1
-# classes <-covar_test$class
-# testOut<-DaMiR.EnsembleLearning(data_norm_test, classes, iter=iter_set)
-# # check results
-# expect_true(dim(testOut$accuracy)[1] == iter_set)
-# expect_true(dim(testOut$accuracy)[2] == 7)
-# expect_true(all(testOut$accuracy<=100))
-# expect_true(all(testOut$accuracy>=0))
->>>>>>> upstream/master
+
 
