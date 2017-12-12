@@ -17,8 +17,12 @@
 #' PCs; default is 0.6
 #' @param type Type of correlation metric; default is "spearman"
 #' @param th.VIP Threshold for \code{bve_pls} function, to remove
-#' non-important
-#' variables; default is 3
+#' non-important variables; default is 3
+#' @param nPlsIter Number of times that \link{bve_pls} has to run.
+#' Each iteration produces a set of selected features, usually similar
+#' to each other but not exacly the same! When nPlsIter is > 1, the
+#' intersection between each set of selected features is performed;
+#' so that, only the most robust features are selected. Default is 1
 #'
 #' @details The function aims to reduce the number of features to obtain
 #' the most informative
@@ -82,7 +86,8 @@ DaMiR.FSelect <- function(data,
                           df,
                           th.corr=0.6,
                           type=c("spearman", "pearson"),
-                          th.VIP=3){
+                          th.VIP=3,
+                          nPlsIter=1){
   # check missing arguments
   if (missing(data))
     stop("'data' argument must be provided")
@@ -101,6 +106,8 @@ DaMiR.FSelect <- function(data,
     stop("'th.corr' must be numeric")
   if(!(is.numeric(th.VIP)))
     stop("'th.VIP' must be numeric")
+  if(!(is.numeric(nPlsIter)))
+    stop("'nPlsIter' must be numeric")
 
 
   data<-as.data.frame(data)
@@ -128,6 +135,10 @@ DaMiR.FSelect <- function(data,
     stop("'class' info is lacking!
          Include the variable 'class'
          in the 'df' data frame and label it 'class'!")
+  if (nPlsIter <= 0)
+    stop("'nPlsIter' must be positive")
+  if ((nPlsIter %%1) != 0)
+    stop("nPlsIter must be integer")
 
 
   correlation <-0
@@ -164,11 +175,31 @@ DaMiR.FSelect <- function(data,
   }
 
   # filter out uninformative features
-  featureslist<-bve_pls(df$class,
-                        as.matrix(data),
-                        ncomp=num_PC,
-                        VIP.threshold=th.VIP)
-  selectedCandidates <- names(data)[unlist(featureslist)]
+  if (nPlsIter == 1){
+    featureslist<-bve_pls(df$class,
+                               as.matrix(data),
+                               ncomp=num_PC,
+                               VIP.threshold=th.VIP)
+    selectedCandidates <- names(data)[unlist(featureslist)]
+  }else{
+    for (i in seq_len(nPlsIter)){
+      if (i== 1){
+        featureslist<-bve_pls(df$class,
+                              as.matrix(data),
+                              ncomp=num_PC,
+                              VIP.threshold=th.VIP)
+        selectedCandidates <- names(data)[unlist(featureslist)]
+      }else{
+       featureslist<-bve_pls(df$class,
+                      as.matrix(data),
+                      ncomp=num_PC,
+                      VIP.threshold=th.VIP)
+       selectedCandidates_iter <- names(data)[unlist(featureslist)]
+       selectedCandidates <- intersect(selectedCandidates,
+                                       selectedCandidates_iter)
+      }
+    }
+  }
   data_reduced<-data[, which(names(data) %in% selectedCandidates)]
   if (length(colnames(data_reduced))==0) {
     cat("All the genes have been discarded!!!
@@ -390,25 +421,34 @@ DaMiR.FSort <- function(data, df, fSample=1){
   cat("Please wait. This operation will take about", round(y),
       "seconds (i.e. about",round(y/60),"minutes).")
 
-  # Random samples for relief
-  classes <- df$class
-  patt_cl1<-paste(c("^", levels(df$class)[1], "$"), sep="", collapse="")
-  patt_cl2<-paste(c("^", levels(df$class)[2], "$"), sep="", collapse="")
+  classes <- levels(df$class)
 
-  sample_index_cl1 <- sample(length(grep(patt_cl1, classes)),
-                             replace = FALSE)
-  sample_index_cl2 <- sample(length(grep(patt_cl2, classes)),
-                             replace = FALSE) + length(grep(patt_cl1,
-                                                          classes))
+  # find the min number of sample per class
+  min_sub <-0
+  for (i in seq_len(length(classes))){
+    min_sub[i] <- length(which(levels(df$class)[i]==df$class))
+  }
+    n_sample_relief <- round(min(min_sub)*fSample)
+  if (n_sample_relief == 0 )
+    stop("No subject has been selected for RRelieF.
+         Please increase 'fSample'.")
 
-  # sampling #% of data for reliefF
-  n_sample_relief <- round(round(nrow(data)*fSample)/2)
+  # find the indexes for sampling
+  sample_index_list <- ""
+  for (i in seq_len(length(classes))){
+    sample_index <- sample(which(levels(df$class)[i]==df$class),replace = FALSE)
+    sample_index <- sample_index[seq_len(n_sample_relief)]
+    sample_index_list <- c(sample_index_list,sample_index)
+  }
+  sample_index_list <- as.numeric(sample_index_list[-1])
 
-  dataset.relief <- data[c(sample_index_cl1[seq_len(n_sample_relief)],
-                           sample_index_cl2[seq_len(n_sample_relief)]), ,
-                         drop=FALSE]
-  classes.relief <- classes[c(sample_index_cl1[seq_len(n_sample_relief)],
-                              sample_index_cl2[seq_len(n_sample_relief)])]
+  if (length(sample_index_list) < 9 )
+    stop("Few subjects have been selected for RRelieF.
+         Please increase 'fSample'.")
+
+  # subset data for relieF
+  dataset.relief <- data[sample_index_list,,drop=FALSE]
+  classes.relief <- df$class[sample_index_list]
   dataset.relief$classes <- classes.relief
 
   # reliefF
@@ -424,12 +464,20 @@ DaMiR.FSort <- function(data, df, fSample=1){
   imp_attrib$attr_importance_scaled <-scale(as.matrix(
     imp_attrib$attr_importance))
   colnames(imp_attrib) <- c("RReliefF","scaled.RReliefF")
-  top_50_imp <- imp_attrib[seq_len(50),1, drop=FALSE]
-  top_50_imp <- top_50_imp[rev(rownames(top_50_imp)),, drop=FALSE]
-  colnames(top_50_imp) <- "Top50 features"
-  dotchart(as.matrix(top_50_imp), xlab = "RReliefF importance",
-           main = "Attributes importance by RReliefF")
 
+  if (dim(imp_attrib)[1] < 50){
+    top_50_imp <- imp_attrib[seq_len(dim(imp_attrib)[1]),1, drop=FALSE]
+    top_50_imp <- top_50_imp[rev(rownames(top_50_imp)),, drop=FALSE]
+    colnames(top_50_imp) <- "Top features"
+    dotchart(as.matrix(top_50_imp), xlab = "RReliefF importance",
+             main = "Attributes importance by RReliefF")
+  } else{
+    top_50_imp <- imp_attrib[seq_len(50),1, drop=FALSE]
+    top_50_imp <- top_50_imp[rev(rownames(top_50_imp)),, drop=FALSE]
+    colnames(top_50_imp) <- "Top50 features"
+    dotchart(as.matrix(top_50_imp), xlab = "RReliefF importance",
+           main = "Attributes importance by RReliefF")
+  }
   return(imp_attrib)
 }
 

@@ -57,10 +57,9 @@ selected_features <- DaMiR.FBest(data_reduced, data_relief,
 autoselect = "yes", th.zscore = 1.5)
 
 }
-\author{
-Mattia Chiesa, Luca Piacentini
-}
 \seealso{
 \code{\link{DaMiR.FSort}}
 }
-
+\author{
+Mattia Chiesa, Luca Piacentini
+}

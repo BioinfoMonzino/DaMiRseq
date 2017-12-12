@@ -127,7 +127,9 @@ DaMiR.corrplot <- function(sv,
 #'  (RLE) boxplots
 #' of expression data.
 #'
-#' @param data A SummarizedExperiment object or an expression data frame
+#' @param data A SummarizedExperiment object or a matrix or a data.frame
+#'  where
+#' rows and cols should be, respectively, observations and features
 #' @param df A data frame with class and known variables (or a subset
 #' of them); at least one column with
 #' 'class' label must be included
@@ -168,8 +170,11 @@ DaMiR.Allplot <- function(data,
   }
 
   # check the type of argument
-  if(!(is(data, "SummarizedExperiment") | is.data.frame(data)))
-    stop("'data' must be a 'data.frame' or a 'SummarizedExperiment' object")
+  if(!(
+    is(data, "SummarizedExperiment") | is.data.frame(data) | is.matrix(data))
+    )
+    stop("'data' must be a 'matrix', a 'data.frame'
+         or a 'SummarizedExperiment' object")
   if(!(is(df, "DataFrame") | is.data.frame(df)))
     stop("'df' must be a data.frame")
 
@@ -239,7 +244,7 @@ DaMiR.Allplot <- function(data,
   }
   ################
   ## RLE
-  colors <- brewer.pal(3, "Set2")
+  colors <- brewer.pal(8, "Set2")
 
   plotRLE(count_data,
           k=2,
@@ -254,7 +259,9 @@ DaMiR.Allplot <- function(data,
 #'
 #' @description A MDS plot is drawn in order to visualize class clustering.
 #'
-#' @param data A SummarizedExperiment object or an expression data.frame
+#' @param data A SummarizedExperiment object or a matrix or a data.frame
+#'  where
+#' rows and cols should be, respectively, observations and features
 #' @param df A data frame with class; it can be directly subset from data
 #' @param type A character string specifing the metric to be applied to
 #' correlation
@@ -293,8 +300,11 @@ DaMiR.MDSplot <- function(data,
   }
 
   # check the type of argument
-  if(!(is(data, "SummarizedExperiment") | is.data.frame(data)))
-    stop("'data' must be a 'data.frame' or a 'SummarizedExperiment' object")
+  if(!(
+    is(data, "SummarizedExperiment") | is.data.frame(data) | is.matrix(data))
+  )
+    stop("'data' must be a 'matrix', a 'data.frame'
+         or a 'SummarizedExperiment' object")
   if(!(is(df, "DataFrame") | is.data.frame(df)))
     stop("'df' must be a data.frame")
 
@@ -353,7 +363,7 @@ DaMiR.MDSplot <- function(data,
 #' @description The function helps to draw a clustering dendrogram and
 #'  a heatmap of expression data.
 #'
-#' @param data A SummarizedExpression object, or an expression data frame
+#' @param data A SummarizedExperiment object or a matrix or a data.frame
 #'  where
 #' rows and cols should be, respectively, observations and features
 #'
@@ -403,8 +413,11 @@ DaMiR.Clustplot <- function(data,
   }
 
   # check the type of argument
-  if(!(is(data, "SummarizedExperiment") | is.data.frame(data)))
-    stop("'data' must be a 'data.frame' or a 'SummarizedExperiment' object")
+  if(!(
+    is(data, "SummarizedExperiment") | is.data.frame(data) | is.matrix(data))
+  )
+    stop("'data' must be a 'matrix', a 'data.frame'
+         or a 'SummarizedExperiment' object")
   if(!(is(df, "DataFrame") | is.data.frame(df)))
     stop("'df' must be a data.frame")
 

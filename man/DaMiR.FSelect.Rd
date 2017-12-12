@@ -5,7 +5,7 @@
 \title{Feature selection for classification}
 \usage{
 DaMiR.FSelect(data, df, th.corr = 0.6, type = c("spearman", "pearson"),
-  th.VIP = 3)
+  th.VIP = 3, nPlsIter = 1)
 }
 \arguments{
 \item{data}{A transposed data frame or a matrix of normalized expression
@@ -23,8 +23,13 @@ PCs; default is 0.6}
 \item{type}{Type of correlation metric; default is "spearman"}
 
 \item{th.VIP}{Threshold for \code{bve_pls} function, to remove
-non-important
-variables; default is 3}
+non-important variables; default is 3}
+
+\item{nPlsIter}{Number of times that \link{bve_pls} has to run.
+Each iteration produces a set of selected features, usually similar
+to each other but not exacly the same! When nPlsIter is > 1, the
+intersection between each set of selected features is performed;
+so that, only the most robust features are selected. Default is 1}
 }
 \value{
 A list containing:
@@ -75,9 +80,6 @@ data_reduced <- DaMiR.FSelect(t_data, df,
 th.corr = 0.7, type = "spearman", th.VIP = 2.5)
 
 }
-\author{
-Mattia Chiesa, Luca Piacentini
-}
 \references{
 Tahir Mehmood, Kristian Hovde Liland, Lars Snipen and
 Solve Saebo (2011).
@@ -91,4 +93,6 @@ Intelligent Laboratory Systems 118, pp. 62-69.
   \item \code{\link{DaMiR.FReduct}}
 }
 }
-
+\author{
+Mattia Chiesa, Luca Piacentini
+}

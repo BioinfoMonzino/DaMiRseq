@@ -16,6 +16,8 @@
 #' @param type Type of normalization to be applied:
 #' \code{varianceStabilizingTransformation}
 #' (\code{vst}) or \code{rlog} are allowed; default is "\code{vst}"
+#' @param nFitType Type of method to estimate the dispersion by vst or
+#' rlog. Default is "parametric". See details in \link{estimateDispersions}
 #'
 #' @details
 #' Before normalization step, this function allows the user to filter
@@ -75,7 +77,8 @@ DaMiR.normalization <- function(data,
                                 fSample=0.5,
                                 hyper=c("yes","no"),
                                 th.cv=3,
-                                type=c("vst","rlog")){
+                                type=c("vst","rlog"),
+                                nFitType=c("parametric", "local", "mean")){
   # check missing arguments
   if (missing(data))
     stop("'data' argument must be provided")
@@ -84,6 +87,9 @@ DaMiR.normalization <- function(data,
   }
   if (missing(type)){
     type <- type[1]
+  }
+  if (missing(nFitType)){
+    nFitType <- nFitType[1]
   }
 
   # check the type of argument
@@ -115,55 +121,56 @@ DaMiR.normalization <- function(data,
     stop("'class' info is lacking!
          Include the variable 'class'
          in colData(data) and label it 'class'!")
+  if(!(nFitType %in% c("parametric", "local", "mean")))
+    stop("'nFitType' must be 'parametric', 'local' or 'mean'")
 
   # start execution
   init_lenght<-dim(data)[1]
 
   #filtering by Expression Level
   minSamplesExpr<-round((dim(data)[2])*fSample)
-  data <- data[rowSums(assay(data) > minCounts) > minSamplesExpr,]
+  data <- data[rowSums(assay(data) >= minCounts) > minSamplesExpr,]
   exprs_counts <- assay(data)
   cat(init_lenght-dim(data)[1],
       "Features have been filtered out by espression.",
       dim(data)[1], "Features remained.","\n")
 
+
   #filtering by CV
   if (hyper == "yes"){
     init_lenght_cv<-dim(data)[1]
-
-    label<-data@colData$class
-    patt_cl1<-paste(c("^", levels(data@colData$class)[1],
-                      "$"), sep="", collapse="")
-    patt_cl2<-paste(c("^", levels(data@colData$class)[2],
-                      "$"), sep="", collapse="")
-
-    cv_value1 <- 0
-    cv_value2 <- 0
-    funct_cv <- function(matr_4_cv){
-      cv_val<- sd(matr_4_cv)/abs(mean(matr_4_cv))
+    classes <- levels(data@colData$class)
+    cv_value <- matrix(nrow=dim(data)[1],
+                       ncol = length(classes))
+    for (i in seq_len(length(classes))){
+        matr2cv <- exprs_counts[,
+                             which(levels(
+                               data@colData$class)[i]==data@colData$class)]
+        cv_value[,i] <- as.matrix(apply(matr2cv, 1, ineq, type ="var"))
     }
-    cv_value1 <- apply(exprs_counts[, grep(patt_cl1,
-                                           data@colData$class)], 1, funct_cv)
-    cv_value2 <- apply(exprs_counts[, grep(patt_cl2,
-                                           data@colData$class)], 1, funct_cv)
-
-    exprs_counts <- exprs_counts[cv_value1 < th.cv & cv_value2 < th.cv ,]
-    # exprs_counts <- assay(data)
+    index2keep <- 0
+    for (j in seq_len(dim(cv_value)[1])){
+      index2keep[j] <- all(cv_value[j,] < th.cv)
+    }
+    exprs_counts <- exprs_counts[which(index2keep == 1),]
     cat(init_lenght_cv-dim(exprs_counts)[1],
         "'Hypervariant' Features have been filtered out.",
         dim(exprs_counts)[1], "Features remained.","\n")
-
   } else if(hyper == "no"){}
   else{stop("'hyper' must be set with 'yes' or 'no' ")}
 
   # Normalization
   if(type == "vst"){
-    cat("Performing Normalization by 'vst'","\n")
-    data_norm <-varianceStabilizingTransformation(exprs_counts)
+    cat("Performing Normalization by 'vst'",
+        "with dispersion parameter: ", nFitType, "\n")
+    data_norm <-varianceStabilizingTransformation(exprs_counts,
+                                                  fitType = nFitType )
   } else if (type == "rlog"){
     cat("Performing Normalization by 'rlog'.
-        For large dataset it could be very time-consuming.","\n")
-    data_norm <-rlog(exprs_counts)}
+        with dispersion parameter: ", nFitType, "\n",
+        "For large dataset it could be very time-consuming.","\n")
+    data_norm <-rlog(exprs_counts,
+                     fitType = nFitType)}
   else{
     stop("Please set 'vst or 'rlog' as normalization type.")
   }
@@ -252,7 +259,7 @@ DaMiR.sampleFilt <- function(data,
     stop("'class' info is lacking!
          Include the variable 'class'
          in colData(data) and label it 'class'!")
-  if (th.corr >1 | th.corr < 0)
+  if (th.corr > 1 | th.corr < 0)
     stop("'th.corr' must be between 0 and 1")
 
   count_data<-assay(data)

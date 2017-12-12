@@ -52,9 +52,6 @@ SE<-DaMiR.makeSE(count_data, variables_data)
 print(SE)
 
 }
-\author{
-Mattia Chiesa, Luca Piacentini
-}
 \references{
 Morgan M, Obenchain V, Hester J and Pag\`es H (2016).
 SummarizedExperiment: SummarizedExperiment container.
@@ -63,4 +60,6 @@ SummarizedExperiment: SummarizedExperiment container.
 \seealso{
 \code{\link{SummarizedExperiment}}
 }
-
+\author{
+Mattia Chiesa, Luca Piacentini
+}

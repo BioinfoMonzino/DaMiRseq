@@ -18,4 +18,3 @@ A sample dataset with a normalized count matrix for "testthat"
 functions.
 }
 \keyword{datasets}
-

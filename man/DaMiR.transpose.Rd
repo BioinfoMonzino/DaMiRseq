@@ -28,4 +28,3 @@ data.transposed <- DaMiR.transpose(assay(data_norm))
 \author{
 Mattia Chiesa, Luca Piacentini
 }
-

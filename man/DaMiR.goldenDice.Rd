@@ -28,4 +28,3 @@ set.seed(gen_numb)
 \author{
 Mattia Chiesa, Luca Piacentini
 }
-

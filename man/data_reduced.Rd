@@ -20,4 +20,3 @@ A dataset with a small dimension of normalized expression data
 in DaMiRseq package
 }
 \keyword{datasets}
-

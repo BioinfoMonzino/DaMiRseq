@@ -42,10 +42,9 @@ data_Reduced <- DaMiR.FReduct(data_reduced,
 th.corr = 0.75, type = "pearson")
 
 }
-\author{
-Mattia Chiesa, Luca Piacentini
-}
 \seealso{
 \code{\link{rcorr}}, \code{\link{findCorrelation}}
 }
-
+\author{
+Mattia Chiesa, Luca Piacentini
+}

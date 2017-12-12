@@ -7,7 +7,9 @@
 DaMiR.Allplot(data, df, type = c("spearman", "pearson"))
 }
 \arguments{
-\item{data}{A SummarizedExperiment object or an expression data frame}
+\item{data}{A SummarizedExperiment object or a matrix or a data.frame
+ where
+rows and cols should be, respectively, observations and features}
 
 \item{df}{A data frame with class and known variables (or a subset
 of them); at least one column with
@@ -44,4 +46,3 @@ DaMiR.Allplot(data=data_norm, df=df)
 \author{
 Mattia Chiesa, Luca Piacentini
 }
-

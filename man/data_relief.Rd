@@ -19,4 +19,3 @@ An example dataset for \code{DaMiRseq} package
 A data frame with relieF and scaled reliefF scores for each gene
 }
 \keyword{datasets}
-

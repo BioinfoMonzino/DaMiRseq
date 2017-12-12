@@ -61,9 +61,6 @@ data(df)
 df.importance <- DaMiR.FSort(data_reduced, df, fSample = 0.75)
 
 }
-\author{
-Mattia Chiesa, Luca Piacentini
-}
 \references{
 Marko Robnik-Sikonja, Igor Kononenko: An adaptation of Relief for
 attribute
@@ -75,4 +72,6 @@ Learning, 296-304, 1997
 \code{\link{relief}}, \code{\link{DaMiR.FSelect}},
  \code{\link{DaMiR.FReduct}}
 }
-
+\author{
+Mattia Chiesa, Luca Piacentini
+}

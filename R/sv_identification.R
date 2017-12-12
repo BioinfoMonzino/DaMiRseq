@@ -12,6 +12,10 @@
 #' variance
 #' explained (fve) to be used in conjunction with "fve" method; default is
 #'  0.95
+#' @param second.var A factor or a numeric vector corresponding to an
+#' additional variable to take into account during the sv identification.
+#' This variable together with 'class' in the data object will be used
+#' to design the model matrix (~ class + second.var)
 #'
 #' @details
 #' This function helps the user to identify the appropriate number of sv:
@@ -63,7 +67,8 @@
 #'
 DaMiR.SV <- function(data,
                      method=c("fve", "leek", "be"),
-                     th.fve=0.95) {
+                     th.fve=0.95,
+                     second.var=NULL) {
 
   # check arguments
   if (missing(data))
@@ -100,8 +105,14 @@ DaMiR.SV <- function(data,
     stop("'th.fve must be between 0 and 1")
 
   data_filt<-assay(data)
+  if (missing(second.var)){
+    mod <- model.matrix(~data@colData$class)
+  }else
+  {
+    mod <- model.matrix(~data@colData$class + second.var)
+  }
 
-  mod <- model.matrix(~data@colData$class)
+
   mod0 <- cbind(mod[,1])
 
   if (method == "fve"){

@@ -6,7 +6,8 @@
 Normalization}
 \usage{
 DaMiR.normalization(data, minCounts = 10, fSample = 0.5, hyper = c("yes",
-  "no"), th.cv = 3, type = c("vst", "rlog"))
+  "no"), th.cv = 3, type = c("vst", "rlog"), nFitType = c("parametric",
+  "local", "mean"))
 }
 \arguments{
 \item{data}{A \code{SummarizedExperiment} object}
@@ -25,6 +26,9 @@ accross samples; default is 3}
 \item{type}{Type of normalization to be applied:
 \code{varianceStabilizingTransformation}
 (\code{vst}) or \code{rlog} are allowed; default is "\code{vst}"}
+
+\item{nFitType}{Type of method to estimate the dispersion by vst or
+rlog. Default is "parametric". See details in \link{estimateDispersions}}
 }
 \value{
 A \code{SummarizedExperiment} object which contains a normalized
@@ -74,9 +78,6 @@ data_norm <- DaMiR.normalization(SE_sub, minCounts=10, fSample=0.8,
 hyper="yes", th.cv = 2.5)
 
 }
-\author{
-Mattia Chiesa, Luca Piacentini
-}
 \references{
 Michael I Love, Wolfgang Huber and Simon Anders (2014):
 Moderated estimation of
@@ -85,4 +86,6 @@ Moderated estimation of
 \seealso{
 \code{\link{varianceStabilizingTransformation}, \link{rlog} }
 }
-
+\author{
+Mattia Chiesa, Luca Piacentini
+}

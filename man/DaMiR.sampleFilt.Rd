@@ -53,4 +53,3 @@ data_filt<- DaMiR.sampleFilt(data_norm, th.corr=0.92, type ="pearson")
 \author{
 Mattia Chiesa, Luca Piacentini
 }
-

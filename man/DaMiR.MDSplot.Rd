@@ -7,7 +7,9 @@
 DaMiR.MDSplot(data, df, type = c("spearman", "pearson"))
 }
 \arguments{
-\item{data}{A SummarizedExperiment object or an expression data.frame}
+\item{data}{A SummarizedExperiment object or a matrix or a data.frame
+ where
+rows and cols should be, respectively, observations and features}
 
 \item{df}{A data frame with class; it can be directly subset from data}
 
@@ -39,4 +41,3 @@ DaMiR.MDSplot(data=data_reduced, df=df, type="pearson")
 \author{
 Mattia Chiesa, Luca Piacentini
 }
-

@@ -8,7 +8,7 @@ DaMiR.Clustplot(data, df, type_row = c("euclidean", "correlation"),
   type_col = c("euclidean", "correlation"))
 }
 \arguments{
-\item{data}{A SummarizedExpression object, or an expression data frame
+\item{data}{A SummarizedExperiment object or a matrix or a data.frame
  where
 rows and cols should be, respectively, observations and features}
 
@@ -46,4 +46,3 @@ df=df, type_row="correlation", type_col="correlation")
 \author{
 Mattia Chiesa, Luca Piacentini
 }
-

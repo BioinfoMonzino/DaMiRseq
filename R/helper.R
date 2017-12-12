@@ -78,14 +78,20 @@ DaMiR.makeSE<-function(x, y) {
   data<-SummarizedExperiment(assays=as.matrix(x), colData=as.data.frame(y))
   cat("Your dataset has:","\n")
   cat(dim(data)[1],"Features;","\n")
-  cat(dim(data)[2],"Samples:",
-      length(which(levels(data@colData$class)[1]==data@colData$class)),
-      levels(data@colData$class)[1],
-      "and",
-      length(which(levels(data@colData$class)[2]==data@colData$class)),
-      levels(data@colData$class)[2], "\n")
+  str_classes <- ""
+  num_samp <- ""
+  name_class <- ""
+  for (i in seq_len(length(levels(data@colData$class)))){
+    num_samp[i] <- length(which(levels(
+      data@colData$class)[i]==data@colData$class))
+    name_class[i] <- levels(data@colData$class)[i]
+  }
+  for (i in seq_len(length(levels(data@colData$class)))){
+    str_classes <- paste(str_classes, num_samp[i], name_class[i])
+  }
+  cat(dim(data)[2],"Samples, divided in:", str_classes, "\n")
   cat(dim(data@colData)[2],"variables:", colnames(data@colData),";",
-      "\n","'class' included.")
+      "\n","'class' included.","\n")
   return(data)
 }
 

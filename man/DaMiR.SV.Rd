@@ -4,7 +4,8 @@
 \alias{DaMiR.SV}
 \title{Identification of Surrogate Variables}
 \usage{
-DaMiR.SV(data, method = c("fve", "leek", "be"), th.fve = 0.95)
+DaMiR.SV(data, method = c("fve", "leek", "be"), th.fve = 0.95,
+  second.var = NULL)
 }
 \arguments{
 \item{data}{A SummarizedExpression object}
@@ -17,6 +18,11 @@ will be selected. Otherwise the method "leek" or "be" should be choosen}
 variance
 explained (fve) to be used in conjunction with "fve" method; default is
  0.95}
+
+\item{second.var}{A factor or a numeric vector corresponding to an
+additional variable to take into account during the sv identification.
+This variable together with 'class' in the data object will be used
+to design the model matrix (~ class + second.var)}
 }
 \value{
 A matrix of sv.
@@ -60,9 +66,6 @@ data(data_norm)
 sv <- DaMiR.SV(data_norm, method = "fve", th.fve=0.95)
 
 }
-\author{
-Mattia Chiesa, Luca Piacentini
-}
 \references{
 Jeffrey T. Leek, W. Evan Johnson, Hilary S. Parker, Elana J. Fertig,
  Andrew E.
@@ -72,4 +75,6 @@ version 3.22.0.
 \seealso{
 \code{\link{sva}}
 }
-
+\author{
+Mattia Chiesa, Luca Piacentini
+}

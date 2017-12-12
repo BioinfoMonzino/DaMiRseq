@@ -20,4 +20,3 @@ sample data are a subset of Genotype-Tissue Expression (GTEx)
 RNA-Seq database (dbGap Study Accession: phs000424.v6.p1)
 }
 \keyword{datasets}
-

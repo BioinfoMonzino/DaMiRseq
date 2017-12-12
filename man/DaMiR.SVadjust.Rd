@@ -34,11 +34,10 @@ data(sv)
 data_adjust <- DaMiR.SVadjust(data_norm, sv = sv, n.sv = 3)
 
 }
-\author{
-Mattia Chiesa, Luca Piacentini
-}
 \seealso{
 \code{\link{removeBatchEffect}},
 \code{\link{DaMiR.SV}}
 }
-
+\author{
+Mattia Chiesa, Luca Piacentini
+}

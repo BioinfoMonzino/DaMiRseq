@@ -15,4 +15,3 @@ An example dataset for \code{DaMiRseq} package
 A dataset with surrogate variables to test DaMiRseq functions
 }
 \keyword{datasets}
-

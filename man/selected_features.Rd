@@ -16,4 +16,3 @@ A dataset with normalized expression data to build classification models
 in DaMiRseq package
 }
 \keyword{datasets}
-

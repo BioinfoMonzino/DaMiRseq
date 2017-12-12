@@ -69,7 +69,7 @@ The normalization step integrates conventional preprocessing and normalization p
 
 RNA-Seq usually consists of many features that are either irrelevant or redundant for classification purposes. Once an expression matrix of \textit{n} features \textit{x m} observations is normalized and corrected for confounding factors, the pipeline provides methods to help the user to reduce and select a subset of \textit{n} that will be subsequently used to build the prediction models. This approach, which exploits the so-called ``Feature Selection'' techniques, presents clear benefits since: it (1) limits overfitting, (2) improves classification performance of predictors, (3) reduces time training processing, and (4) allows the production of more cost-effective models \cite{guyon2003introduction, saeys2007review}.
 
-The reduced expression matrix, consisting of the most informative variables with respect to class, is than used to draw a ``meta-learner'' by combining the outputs of 6 different classifiers: Random Forest (RF), Na\"{i}ve Bayes (NB), 3-Nearest Neighbours (3kNN), Logistic Regression (LR), Linear Discriminant Analysis (LDA) and Support Vectors Machines (SVM); this method may be referred to as a ``Stack Generalization'' or, simply, ``Stacking'' ensemble learning technique \cite{friedman2001elements}. The idea behind this method is that ``weaker'' classifiers may have different generalization performances, leading to future misclassifications; by contrast, combining and weighting the prediction of several classifiers may reduce the risk of classification errors \cite{polikar2006ensemble, wolpert1992stacked}. Moreover, the weighted voting, used to assess the goodness of each weak classifiers, allows meta-learner to reach consistently high classification accuracies, better than or comparable with best weak classifiers \cite{rokach2010ensemble}.
+The reduced expression matrix, consisting of the most informative variables with respect to class, is then used to draw a ``meta-learner'' by combining different classifiers: Random Forest (RF), Na\"{i}ve Bayes (NB), 3-Nearest Neighbours (3kNN), Logistic Regression (LR), Linear Discriminant Analysis (LDA), Support Vectors Machines (SVM), Neural Networks (NN) and Partial Least Squares (PLS); this method may be referred to as a ``Stack Generalization'' or, simply, ``Stacking'' ensemble learning technique \cite{friedman2001elements}. The idea behind this method is that ``weaker'' classifiers may have different generalization performances, leading to future misclassifications; by contrast, combining and weighting the prediction of several classifiers may reduce the risk of classification errors \cite{polikar2006ensemble, wolpert1992stacked}. Moreover, the weighted voting method, used to assess the goodness of each weak classifiers, allows meta-learner to reach consistently high classification accuracies, better than or comparable with best weak classifiers \cite{rokach2010ensemble}.
 
 \section{Workflow} \label{sect2}
 
@@ -95,8 +95,8 @@ for two similar brain subregions: Anterior Cingulate Cortex (Bromann Area 24) an
 Cingulate Cortex (ACC) and 108 Frontal Cortex (FC) samples for 56318 genes. \\ We, also, provide a data frame with classes and  variables included.
 
 \subsection{Import Data}
-\damir{} package uses data extracted from \Biocpkg{SummarizedExperiment} class object. This object is usually employed to store either expression data produced by high-troughput technology and other information occuring with the experimental setting. The \Robject{SummarizedExperiment} object may be considered a matrix-like holder where rows and colums represent, respectively, features and samples. If data are not stored in a \Robject{SummarizedExperiment} object, the \Rfunction{DaMiR.makeSE} function helps the user to build a \Robject{SummarizedExperiment} object starting from expression and variable data table. The function tests if expression data are in the form of raw counts, \textit{i.e.} positive integer numbers, if 'class' variable is included in the data frame and if ``NAs'' are present in either the counts and the variables table.
-The \Rfunction{DaMiR.makeSE} function needs two files as input data: 1) a raw counts table and 2) a class and (if present) variable information table. In this vignette,
+\damir{} package uses data extracted from \Biocpkg{SummarizedExperiment} class object. This object is usually employed to store either expression data produced by high-troughput technology and other information occuring with the experimental setting. The \Robject{SummarizedExperiment} object may be considered a matrix-like holder where rows and colums represent, respectively, features and samples. If data are not stored in a \Robject{SummarizedExperiment} object, the \Rfunction{DaMiRseq.makeSE} function helps the user to build a \Robject{SummarizedExperiment} object starting from expression and variable data table. The function tests if expression data are in the form of raw counts, \textit{i.e.} positive integer numbers, if 'class' variable is included in the data frame and if ``NAs'' are present in either the counts and the variables table.
+The \Rfunction{DaMiRseq.makeSE} function needs two files as input data: 1) a raw counts table and 2) a class and (if present) variable information table. In this vignette,
 we will use the dataset described in Section~\ref{data_prep} but the user could import other count and variable table files into R environment as follows:
 
 <<chu_1>>=
@@ -138,7 +138,7 @@ allows the removal of inconsistent samples.
   of the \Biocpkg{DESeq2} package \cite{love2014moderated}. Using \Rfunction{assay()} function, we can see that ``VST'' transformation produces data on the log2 scale normalized with respect to the library size.
 
   \subsubsection{Filtering By Coefficient of Variation (CV)} \label{filt_cv}
-  We named ``hypervariants'' those genes that present anomalous read counts, by comparing to the mean value across the samples. We identify them by calculating two distinct CV on sample sets that belong, respectively, to the first and the second 'class'. Genes with both 'class' CV greater than \Rcode{th.cv} are discarded.\\
+  We named ``hypervariants'' those genes that present anomalous read counts, by comparing to the mean value across the samples. We identify them by calculating distinct CV on sample sets that belong to each 'class'. Genes with all 'class' CV greater than \Rcode{th.cv} are discarded.\\
 \textbf{Note.} Computing a 'class' restricted CV may prevent the removal of features that may be specifically associated with a certain class. This could be important in some biological contexts, such as immune genes whose expression under definite conditions may unveil peculiar class-gene associations. \\
   This time, we run again the \Rfunction{DaMiR.normalization} function by enabling the ``hypervariant'' gene detection by setting \Rcode{hyper = "yes"} and \Rcode{th.cv=3} (default):
   <<chu_5>>=
@@ -392,28 +392,27 @@ Clustergram. The clustergram is generated by using the expression values of the 
 
 
 \subsection{Classification}
-All the steps executed so far allowed the normalization, cleaning and reduction of the original expression matrix; the objective is to capture a subset of original data as informative as possible, in order to carry out a classification analysis. In this paragraph, we describe the statistical learning strategy we implemented to tackle binary classification problems.\\
-A meta-learner is built, combining the outputs of 6 different classifiers through a ``Stacking'' strategy. Currently, there is no gold standard for creating the best rule to combine predictions \cite{polikar2006ensemble}. We decided to implement a framework that relies on the ``weighted majority voting'' approach \cite{LITTLESTONE1994212}. In particular, our method estimates a weight for each classifier, based on its own accuracy, and then use these weights, together with predictions, to fine-tune a decision rule (\textit{i.e.} meta-learner). Briefly, first a training set (TR1) and a test set (TS1) are generated by ``Bootstrap'' sampling. Then, sampling again from subset TR1, another pair of training (TR2) and test set (TS2) were obtained. TR2 is used to train RF, NB, SVM, 3kNN, LDA and LR classifiers, whereas TS2 is used to test their accuracy and to calculate weights ($w$) by formula:
+All the steps executed so far allowed the normalization, cleaning and reduction of the original expression matrix; the objective is to capture a subset of original data as informative as possible, in order to carry out a classification analysis. In this paragraph, we describe the statistical learning strategy we implemented to tackle both binary and multi-class classification problems.\\
+A meta-learner is built, combining up to 8 different classifiers through a ``Stacking'' strategy. Currently, there is no gold standard for creating the best rule to combine predictions \cite{polikar2006ensemble}. We decided to implement a framework that relies on the ``weighted majority voting'' approach \cite{LITTLESTONE1994212}. In particular, our method estimates a weight for each used classifier, based on its own accuracy, and then use these weights, together with predictions, to fine-tune a decision rule (\textit{i.e.} meta-learner). Briefly, first a training set (TR1) and a test set (TS1) are generated by ``Bootstrap'' sampling. Then, sampling again from subset TR1, another pair of training (TR2) and test set (TS2) were obtained. TR2 is used to train RF, NB, SVM, 3kNN, LDA, NN, PLS and/or LR classifiers (the number and the type are chosen by the user), whereas TS2 is used to test their accuracy and to calculate weights ($w$) by formula:
 
 \begin{equation}\label{ens_weight1}
   w_{classifier_{i}} = \frac{Accuracy_{classifier_{i}}}{\displaystyle\sum_{j=1}^{N} Accuracy_{classifier_{j}}}
 \end{equation}
-where $i$ is a specific classifiers and $N$ is the total number of them (here, $N = 6$). Using this approach:
+where $i$ is a specific classifiers and $N$ is the total number of them (here, $N <= 8$). Using this approach:
 
 \begin{equation}\label{ens_weight2}
   \displaystyle\sum_{i=1}^{N} w_{i} = 1
 \end{equation}
 
 The higher the value of $w_i$, the more accurate is the classifier.\\
-The performance of the meta-learner (labelled as ``Ensemble'') is evaluated by using TS1. The decision rule of the meta-learner is made by a linear combination of the products between weigths ($w$) and binary (0 or 1) predictions ($Pr$) of each classifier; for each sample \textit{k}, the prediction is computed by:
+The performance of the meta-learner (labelled as ``Ensemble'') is evaluated by using TS1. The decision rule of the meta-learner is made by a linear combination of the products between weigths ($w$) and predictions ($Pr$) of each classifier; for each sample \textit{k}, the prediction is computed by:
 \begin{equation}\label{ens_learn}
   \begin{split}
-    Pr_{(k, Ensemble)} = w_{RF} * Pr_{(k, RF)} + w_{NB} * Pr_{(k, NB)} + w_{SVM} * Pr_{(k, SVM)} + \\
-    + w_{3kNN} * Pr_{(k, 3kNN)} + w_{LDA} * Pr_{(k, LDA)} + w_{LR} * Pr_{(k, LR)}
+    Pr_{(k, Ensemble)} = \sum_{i=1}^{N} w_{i} * Pr_{(k, classifier_{i})}
   \end{split}
 \end{equation}
 
-$Pr_{(k, Ensemble)}$ ranges from 0 (high probability to belong to one class) to 1 (high probability to belong to the other class); predictions close to 0.5 have to be considered as made by chance. This process is repeated several times to assess the robustness of the set of predictors used.\\
+$Pr_{(k, Ensemble)}$ ranges from 0 to 1. For binary classification analysis, 0 means high probability to belong to one class, while 1 means high probability to belong to the other class); predictions close to 0.5 have to be considered as made by chance. For multi-class analysis 1 means right prediction, while 0 means wrong prediction. This process is repeated several times to assess the robustness of the set of predictors used.\\
 
 This procedure is implemented in the \Rfunction{DaMiR.EnsembleLearning} function, where \Rcode{fSample.tr}, \Rcode{fSample.tr.w} and \Rcode{iter} arguments allow the algorithm tuning.\\
 To speed up the execution time of the function, we set \Rcode{iter = 30} (default is 100) but we suggest to use an higher number of iterations to obtain more accurate results.
@@ -424,7 +423,7 @@ To speed up the execution time of the function, we set \Rcode{iter = 30} (defaul
                           classes=df$class, fSample.tr = 0.5,
                           fSample.tr.w = 0.5, iter = 30)
 @
-The function returns a list containing: a matrix of accuracies of each classifier in each iteration, a matrix of weights used for each classifier in each iteration and a list of all models generated in each iteration. These objects can be accessed using the \$ accessor.
+The function returns a list containing the matrix of accuracies of each classifier in each iteration and, in the case of a binary classification problem, the specificity, the sensitivity and the Matthew's Correlation Coefficient (MCC). These objects can be accessed using the \$ accessor.
 
 \begin{figure}[!htbp]
 \includegraphics{figure/chu_17-1}
@@ -434,8 +433,40 @@ Accuracies Comparison. The violin plot highlights the classification accuracy of
 \label{fig_n10}
 \end{figure}
 \FloatBarrier
+%
+% \begin{figure}[!htbp]
+% \includegraphics{figure/chu_17-2}
+% \caption{
+% Matthew Correlation Coefficient Comparison (MCC). The violin plot highlights the MCC of each classifier, computed at each iteration; a black dot represents a specific accuracy value while the shape of each ``violin'' is drawn by a Gaussian kernel density estimation. Averaged accuracies and standard deviations are represented by white dots and lines.
+% }
+% \label{fig_n10_2}
+% \end{figure}
+% \FloatBarrier
+%
+% \begin{figure}[!htbp]
+% \includegraphics{figure/chu_17-3}
+% \caption{
+% Specificity Comparison. The violin plot highlights the specificity of each classifier, computed at each iteration; a black dot represents a specific accuracy value while the shape of each ``violin'' is drawn by a Gaussian kernel density estimation. Averaged accuracies and standard deviations are represented by white dots and lines.
+% }
+% \label{fig_n10_3}
+% \end{figure}
+% \FloatBarrier
+%
+% \begin{figure}[!htbp]
+% \includegraphics{figure/chu_17-4}
+% \caption{
+% Sensitivity Comparison. The violin plot highlights the sensitivity of each classifier, computed at each iteration; a black dot represents a specific accuracy value while the shape of each ``violin'' is drawn by a Gaussian kernel density estimation. Averaged accuracies and standard deviations are represented by white dots and lines.
+% }
+% \label{fig_n10_4}
+% \end{figure}
+% \FloatBarrier
 
-As shown in Figure~\ref{fig_n10}, almost all single, weak classifiers show high or very high classification accuracy (RF: $99.5 \pm 2.01$, SVM: $99.33 \pm 1.73$, NB: $94 \pm 8.45$, LDA: $92.83 \pm 8.48$, LR: $88.83 \pm 10.64$, 3kNN: $96.67 \pm 3.56$). As discussed in Section~\ref{intro}, the meta-learner is more influenced by better weak classifiers than inferior ones, which ensures ``Ensemble'' to reach a classification accuracy equal to $99 \pm 2.42$.
+As shown in Figure~\ref{fig_n10} almost all single, weak classifiers show high or very high classification performancies, in terms of accuracy, specificity, sensitivity and MCC.\\
+% \textbf{Accuracy}  - RF: $99.67 \pm 1.3$, SVM: $99 \pm 2$, NB: $96.5 \pm 4.6$, LDA: $94.67 \pm 9.9$, LR: $99.33 \pm 1.7$, 3kNN: $96.83 \pm 4.4$. \\
+% \textbf{MCC}  - RF: $99.33 \pm 2.5$, SVM: $98 \pm 4.1$, NB: $93.3 \pm 8.6$, LDA: $89.47 \pm 19.5$, LR: $98.67 \pm 3.5$, 3kNN: $93.97 \pm 8.3$.\\
+% \textbf{Specificity}  - RF: $99.67 \pm 1.8$, SVM: $98.67 \pm 3.5$, NB: $98.67 \pm 4.3$, LDA: $93.67 \pm 14.5$, LR: $99 \pm 3.1$, 3kNN: $96 \pm 6.7$.\\
+% \textbf{Sensitivity}  - RF: $99.67 \pm 1.8$, SVM: $99.33 \pm 2.5$, NB: $94.33 \pm 8.2$, LDA: $95.67 \pm 7.3$, LR: $99.67 \pm 1.8$, 3kNN: $97.67 \pm 6.3$.\\
+% As discussed in Section~\ref{intro}, the meta-learner is more influenced by better weak classifiers than inferior ones, which ensures ``Ensemble'' to reach a classification accuracy equal to $99.5 \pm 1.5$, a MCC equal to $99 \pm 3.1$, a Specificity equal to $99.67 \pm 1.8$, and a Sensitivity equal to $99.33 \pm 2.5$.
 
 \subsection{Exporting output data}
 \damir{} has been designed to allow users to export the outputs of each function, which consist substantially in \Robject{matrix} or \Robject{data.frame} objects. Export can be done, using the base R functions, such as \Rfunction{write.table} or \Rfunction{write.csv}. For example, we could be interested in saving normalized data matrix, stored in ``data\_norm'' in a tab-delimited file:
@@ -480,15 +511,46 @@ Classification_res_2 <- DaMiR.EnsembleLearning(selected_features_2$data,
 
 The consequence of data adjustment is already remarkable after the feature selection and reduction steps. The number of selected genes, indeed, decreased from 220 to 98 when data adjustment was not performed, suggesting that hidden factors may influence gene expression and likely mask class-related features. Furthermore, the ranking of the important features also differs if data correction is not applied. The two sets of 5 genes that are used to build the classification models shares, in fact, only 1 gene. This suggests that data adjustment affects both the number and the quality of the features that can be selected for classification. Therefore, the overall classification performances, without the appropriate data correction, hugely felt down below 90\% of accuracy for all the classifiers.
 
-Figure~\ref{fig_n11} shows the results of the variation to standard workflow of \damir{}, proposed in this Section. Taking as reference the ``Standard Workflow'', described in Section~\ref{sect2}, we can observe that the performances, in terms of classification accuracy, drastically decrease:
-RF: $87.33 \pm 5.68$, SVM: $89 \pm 6.35$, NB: $87.83 \pm 8.38$, LDA: $79.17 \pm 8.72$, LR: $76.67 \pm 10.45$, 3kNN: $78.67 \pm 9.82$. These results affect obviously the performances of ``Ensemble'' meta-learner that reaches a classification accuracy equal to $88.67 \pm 5.24$.
+Figure~\ref{fig_n11} shows the results of the variation to standard workflow of \damir{}, proposed in this Section. Taking as reference the ``Standard Workflow'', described in Section~\ref{sect2}, we can observe that the performances significantly decrease.\\
+% \textbf{Accuracy} - RF: $92.33 \pm 5.5$, SVM: $95.5 \pm 3.3$, NB: $95.67 \pm 4.7$, LDA: $88.17 \pm 7$, LR: $95.33 \pm 3.9$, 3kNN: $93.17 \pm 6.9$.\\
+% \textbf{MCC}- RF: $85.13 \pm 10.5$, SVM: $91.27 \pm 6.2$, NB: $91.7 \pm 8.6$, LDA: $77.47 \pm 13.5$, LR: $90.8 \pm 7.7$, 3kNN: $86.83 \pm 13.2$.\\
+% \textbf{Specificity} - RF: $91.67 \pm 8.7$, SVM: $97 \pm 6$, NB: $94.33 \pm 9$, LDA: $87.67 \pm 11.7$, LR: $95.33 \pm 5.1$, 3kNN: $93 \pm 9.5$.\\
+% \textbf{Sensitivity} - RF: $93 \pm 8.4$, SVM: $94 \pm 6.2$, NB: $97 \pm 5.3$, LDA: $88.67 \pm 12$, LR: $95.33 \pm 6.3$, 3kNN: $93.33 \pm 9.9$.\\
+% These results affect obviously the performances of ``Ensemble'' meta-learner that reaches a classification accuracy equal to $95.67 \pm 3.1$, a MCC equal to $91.4 \pm 6.2$, a Specificity equal to $96.67 \pm 5.5$, and a Sensitivity equal to $94.67 \pm 5.1$.
+
 
 \begin{figure}[!htbp]
 \includegraphics{figure/chu_18-2} % no SV
-\caption{Accuracies Comparison. The violin plot shows the effect of the modification to \damir{} standard workflow, described in Section~\ref{no_SV_corr}: without adjusting data (following the steps described in Section~\ref{adj_data}), performances usually decrease; this could be explained by the fact that some noise, probably coming from unknown source of variation, is present in the dataset. In this example, overall accuracies drastically decrease below 90\% for all classifiers.}
+\caption{Accuracies Comparison. The violin plot shows the effect of the modification to \damir{} standard workflow, described in Section~\ref{no_SV_corr}: without adjusting data (following the steps described in Section~\ref{adj_data}), performances usually decrease; this could be explained by the fact that some noise, probably coming from unknown source of variation, is present in the dataset.}
 \label{fig_n11}
 \end{figure}
 \FloatBarrier
+
+\section{New implementations}
+\subsection{Version 1.3.1}
+
+Relevant modifications:
+\begin{itemize}
+  \item{\damir{} performs both binary and multi-class classification anlysis;}
+  \item{The ``Stacking'' meta-learner can be composed by the user, setting the new parameter \Rcode{cl\_type} of the \Rfunction{DaMiR.EnsembleLearning} function. Any combination up to 8 classifiers (``RF'', ``NB'', ``kNN'', ``SVM'', ``LDA'', ``LR'', ``NN'', ``PLS'') is now allowed;}
+  \item{If the dataset is imbalanced, a ``Down-Sampling'' strategy is automatically applied;}
+  \item{The \Rfunction{DaMiR.FSelect} function has the new argument, called \Rcode{nPlsIter}, which allows the user to have a more robust features set. In fact, several feature sets are generated by the \Rfunction{bve\_pls} fuction (embedded in \Rfunction{DaMiR.FSelect}), setting 'nPLSIter' parameter greater than 1. Finally, an intersection among all the feature sets is performed to return those features which constantly occur in all runs. However, by default, \Rcode{nPlsIter = 1}.}
+  \end{itemize}
+
+Minor modifications and bugs fixed:
+\begin{itemize}
+  \item{\Rfunction{DaMiR.Allplot} accepts also 'matrix' objects;}
+  \item{The \Rfunction{DaMiR.normalization} function estimates the dispersion, through the parameter \Rcode{nFitType}; as in \Biocpkg{DESeq2} package, the argument can be 'parametric' (default), 'local' and 'mean';}
+  \item{In the \Rfunction{DaMiR.normalization} function, the gene filtering is desabled if \Rcode{minCount = 0};}
+  \item{In the \Rfunction{DaMiR.EnsembleLearning} function, the method for implementing the Logistic Regression has been changed to allow multi-class comparisons; instead of the native \Rfunction{lm} function, the \Rcode{bayesglm} method implemented in the \CRANpkg{caret} \Rfunction{train} function is now used;}
+  \item{The new parameter \Rcode{second.var} of the \Rfunction{DaMiR.SV} function, allows the user to take into account a secondary variable of interest (factorial or numerical) that the user does not wish to correct for, during the sv identification.}
+  \end{itemize}
+
+
+
+
+
+
 
 
 \section{Session Info}

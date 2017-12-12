@@ -22,4 +22,3 @@ An example dataset for \code{DaMiRseq} package
 A data frame with class and covariates information
 }
 \keyword{datasets}
-

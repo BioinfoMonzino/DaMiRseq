@@ -51,10 +51,9 @@ data(sv)
 DaMiR.corrplot(sv=sv, df=df, type = "pearson", sig.level=0.01)
 
 }
-\author{
-Mattia Chiesa, Luca Piacentini
-}
 \seealso{
 \code{\link{DaMiR.SV}}
 }
-
+\author{
+Mattia Chiesa, Luca Piacentini
+}
