@@ -104,8 +104,8 @@ library(DaMiRseq)
 ## only for example:
 # rawdata.path <- system.file(package = "DaMiRseq","extdata")
 # setwd(rawdata.path)
-# filecounts <- list.files(rawdata.path, full.names = TRUE)[1]
-# filecovariates <- list.files(rawdata.path, full.names = TRUE)[2]
+# filecounts <- list.files(rawdata.path, full.names = TRUE)[2]
+# filecovariates <- list.files(rawdata.path, full.names = TRUE)[1]
 # count_data <- read.delim(filecounts)
 # covariate_data <- read.delim(filecovariates)
 # SE<-DaMiR.makeSE(count_data, covariate_data)
@@ -157,10 +157,10 @@ allows the removal of inconsistent samples.
   <<chu_6, eval=FALSE>>=
   # Time Difference, using VST or rlog for normalization:
   #
-  #data_norm <- DaMiR.normalization(dds, minCounts=10, fSample=0.7, th.cv=3)
+  #data_norm <- DaMiR.normalization(SE, minCounts=10, fSample=0.7, th.cv=3)
   # VST: about 80 seconds
   #
-  #data_norm <- DaMiR.normalization(dds, minCounts=10, fSample=0.7, th.cv=3,
+  #data_norm <- DaMiR.normalization(SE, minCounts=10, fSample=0.7, th.cv=3,
   #                                 type="rlog")
   # rlog: about 8890 seconds (i.e. 2 hours and 28 minutes!)
   @

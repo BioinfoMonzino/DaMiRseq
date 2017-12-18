@@ -69,8 +69,9 @@
 #' # only for the example:
 #' # speed up the process setting a low 'iter' argument value;
 #' # for real data set use default 'iter' value (i.e. 100) or higher:
-#' Classification_res <- DaMiR.EnsembleLearning2cl(selected_features,
-#'  classes=df$class, fSample.tr=0.6, fSample.tr.w=0.6, iter=5)
+#' Classification_res <- DaMiR.EnsembleLearning(selected_features,
+#'  classes=df$class, fSample.tr=0.6, fSample.tr.w=0.6, iter=3,
+#'  cl_type=c("RF","kNN"))
 #'
 #' @export
 #'
@@ -506,20 +507,19 @@ DaMiR.EnsembleLearning2cl <- function(data,
       Specif.Class[jj,] <- TN_Class /
         length(which(testSetClasses == levels(testSetClasses)[2]))
 
-
-
-
-
   }
+  
+  MCC.Class[which(is.nan(MCC.Class))] <- 0
+  
   colnames(acc.Class) <- colnames(tPred)
   colnames(MCC.Class) <- colnames(tPred)
   colnames(Sensit.Class) <- colnames(tPred)
   colnames(Specif.Class) <- colnames(tPred)
 
   acc.Class<-round(acc.Class,2)
-  MCC.Class<-round(MCC.Class,2) * 100
-  Sensit.Class<-round(Sensit.Class,2) * 100
-  Specif.Class<-round(Specif.Class,2) * 100
+  MCC.Class<-round(MCC.Class,2)
+  Sensit.Class<-round(Sensit.Class,2)
+  Specif.Class<-round(Specif.Class,2)
 
   ##
   acc_dotplot <- melt(as.data.frame(acc.Class),
@@ -550,13 +550,13 @@ DaMiR.EnsembleLearning2cl <- function(data,
           geom_dotplot(binaxis='y',
                        stackdir='center',
                        stackratio=1.5,
-                       dotsize=0.2,
+                       dotsize=0.002,
                        binwidth = 0.5) +
           stat_summary(fun.data=mean_sdl,
                        fun.args = list(mult=1),
                        geom="pointrange",
                        color="white") +
-          coord_cartesian(ylim=c(min(MCC.Class)-5,100))
+          coord_cartesian(ylim=c(min(MCC.Class)-0.05,1))
         )
   ##
   ##
@@ -570,13 +570,13 @@ DaMiR.EnsembleLearning2cl <- function(data,
           geom_dotplot(binaxis='y',
                        stackdir='center',
                        stackratio=1.5,
-                       dotsize=0.2,
+                       dotsize=0.002,
                        binwidth = 0.5) +
           stat_summary(fun.data=mean_sdl,
                        fun.args = list(mult=1),
                        geom="pointrange",
                        color="white") +
-          coord_cartesian(ylim=c(min(Specif.Class)-5,100))
+          coord_cartesian(ylim=c(min(Specif.Class)-0.05,1))
         )
   ##
   ##
@@ -590,13 +590,13 @@ DaMiR.EnsembleLearning2cl <- function(data,
           geom_dotplot(binaxis='y',
                        stackdir='center',
                        stackratio=1.5,
-                       dotsize=0.2,
+                       dotsize=0.002,
                        binwidth = 0.5) +
           stat_summary(fun.data=mean_sdl,
                        fun.args = list(mult=1),
                        geom="pointrange",
                        color="white") +
-          coord_cartesian(ylim=c(min(Sensit.Class)-5,100))
+          coord_cartesian(ylim=c(min(Sensit.Class)-0.05,1))
         )
   ##
 
@@ -606,19 +606,19 @@ DaMiR.EnsembleLearning2cl <- function(data,
       "\n",
       "Mean:",round(colMeans(acc.Class),2),"\n","St.Dev.",
       round(colSds(acc.Class),digits = 1),"\n")
-  cat("MCC score [%]:",
+  cat("MCC score:",
       "\n",
       colnames(MCC.Class),
       "\n",
       "Mean:",round(colMeans(MCC.Class),2),"\n","St.Dev.",
       round(colSds(MCC.Class),digits = 1),"\n")
-  cat("Specificity [%]:",
+  cat("Specificity:",
       "\n",
       colnames(Specif.Class),
       "\n",
       "Mean:",round(colMeans(Specif.Class),2),"\n","St.Dev.",
       round(colSds(Specif.Class),digits = 1),"\n")
-  cat("Sensitivity [%]:",
+  cat("Sensitivity:",
       "\n",
       colnames(Sensit.Class),
       "\n",
