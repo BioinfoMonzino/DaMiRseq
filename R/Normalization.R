@@ -119,8 +119,7 @@ DaMiR.normalization <- function(data,
     stop("colnames(assay(data)) must be equal to rownames(colData(data))")
   if(!("class" %in% colnames(colData(data))))
     stop("'class' info is lacking!
-         Include the variable 'class'
-         in colData(data) and label it 'class'!")
+         Include the variable 'class' in colData(data) and label it 'class'!")
   if(!(nFitType %in% c("parametric", "local", "mean")))
     stop("'nFitType' must be 'parametric', 'local' or 'mean'")
 
@@ -166,12 +165,13 @@ DaMiR.normalization <- function(data,
     data_norm <-varianceStabilizingTransformation(exprs_counts,
                                                   fitType = nFitType )
   } else if (type == "rlog"){
-    cat("Performing Normalization by 'rlog'.
-        with dispersion parameter: ", nFitType, "\n",
+    cat("Performing Normalization by 'rlog'",
+        "with dispersion parameter: ", nFitType, "\n",
         "For large dataset it could be very time-consuming.","\n")
     data_norm <-rlog(exprs_counts,
-                     fitType = nFitType)}
-  else{
+                     fitType = nFitType)
+	rownames(data_norm) <- rownames(exprs_counts)
+	}else{
     stop("Please set 'vst or 'rlog' as normalization type.")
   }
 
