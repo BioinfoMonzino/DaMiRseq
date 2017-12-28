@@ -153,7 +153,7 @@ DaMiR.goldenDice <- function(){
 DaMiR.transpose <- function(data){
   # check arguments
   if (missing(data)) stop("'data' argument must be provided")
-  if(!(is.matrix(data))) stop("'data' must be a matrixnumeric")
+  if(!(is.matrix(data))) stop("'data' must be a matrix")
 
   # check the presence of NA or Inf
   if (any(is.na(data)))

@@ -368,7 +368,8 @@ DaMiR.FReduct <- function(data,
 #' data(data_reduced)
 #' data(df)
 #' # rank features by importance:
-#' df.importance <- DaMiR.FSort(data_reduced, df, fSample = 0.75)
+#' df.importance <- DaMiR.FSort(data_reduced[,1:20],
+#'  df, fSample = 0.75)
 #'
 #' @export
 #'

@@ -289,9 +289,9 @@ DaMiR.sampleFilt <- function(data,
       "Samples have been excluded by averaged Sample-per-Sample correlation.",
       "\n",dim(data_filt)[2], "Samples remained.","\n")
   if(number_of_samples>dim(data_filt)[2]){
-  cat ("Filtered out samples :",
+  cat("Filtered out samples :",
        "\n",
-       setdiff(rownames(colData(data)), rownames(colData(data_filt))))
+       setdiff(rownames(colData(data)), rownames(colData(data_filt))),"\n")
   }
   return(data_filt)
 
