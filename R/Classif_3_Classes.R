@@ -63,8 +63,8 @@
 #' # speed up the process setting a low 'iter' argument value;
 #' # for real data set use default 'iter' value (i.e. 100) or higher:
 #' Classification_res <- DaMiR.EnsembleLearning(selected_features,
-#'  classes=df$class, fSample.tr=0.6, fSample.tr.w=0.6, iter=3,
-#'  cl_type=c("RF","kNN"))
+#'  classes=df$class, fSample.tr=0.6, fSample.tr.w=0.6, iter=1,
+#'  cl_type="kNN")
 #'
 #' @export
 #'
