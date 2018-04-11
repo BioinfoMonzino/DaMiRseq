@@ -69,9 +69,9 @@
 #' # only for the example:
 #' # speed up the process setting a low 'iter' argument value;
 #' # for real data set use default 'iter' value (i.e. 100) or higher:
-#' # Classification_res <- DaMiR.EnsembleLearning(selected_features,
-#'  classes=df$class, fSample.tr=0.6, fSample.tr.w=0.6, iter=3,
-#'  cl_type=c("RF","kNN"))
+#' #  Classification_res <- DaMiR.EnsembleLearning(selected_features,
+#' # classes=df$class, fSample.tr=0.6, fSample.tr.w=0.6, iter=3,
+#' # cl_type=c("RF","kNN"))
 #'
 #' @export
 #'
@@ -310,7 +310,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
                        cost = tune.for.model$best.parameters$cost,
                        hidden=3)
       acc_model[kk] <- caret::confusionMatrix(
-        table(predict(model_svm, testSet_DM), testSet_DM$classes),
+        predict(model_svm, testSet_DM),
         reference = testSet_DM$classes)$overall['Accuracy']
       names(acc_model)[kk] <- "SVM"
 
@@ -325,7 +325,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
     model_nb <- naiveBayes(formula = formula_DM,
                            data = trainingSet_DM)
     acc_model[kk] <- caret::confusionMatrix(
-      table(predict(model_nb, testSet_DM), testSet_DM$classes),
+      predict(model_nb, testSet_DM),
       reference = testSet_DM$classes)$overall['Accuracy']
     names(acc_model)[kk] <- "NB"
 
@@ -339,7 +339,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
     model_lda <- lda(formula = formula_DM,
                      data = trainingSet_DM)
     acc_model[kk] <- caret::confusionMatrix(
-      table(predict(model_lda, testSet_DM)$class, testSet_DM$classes),
+      predict(model_lda, testSet_DM)$class,
       reference = testSet_DM$classes)$overall['Accuracy']
     names(acc_model)[kk] <- "LDA"
 
@@ -355,7 +355,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
                                data = trainingSet_DM,
                                family=binomial(link="logit"))
       acc_model[kk] <- caret::confusionMatrix(
-        table(predict(model_lr, testSet_DM), testSet_DM$classes),
+        predict(model_lr, testSet_DM),
         reference = testSet_DM$classes)$overall['Accuracy']
       names(acc_model)[kk] <- "LR"
 
@@ -370,7 +370,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
                                data = trainingSet_DM)
 
       acc_model[kk] <- caret::confusionMatrix(
-        table(predict(model_nn, testSet_DM), testSet_DM$classes),
+        predict(model_nn, testSet_DM),
         reference = testSet_DM$classes)$overall['Accuracy']
       names(acc_model)[kk] <- "NN"
 
@@ -384,7 +384,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
                                method="pls",
                                data = trainingSet_DM)
       acc_model[kk] <- caret::confusionMatrix(
-        table(predict(model_pls, testSet_DM), testSet_DM$classes),
+        predict(model_pls, testSet_DM),
         reference = testSet_DM$classes)$overall['Accuracy']
       names(acc_model)[kk] <- "PLS"
 
@@ -396,7 +396,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
     if (any(cl_type %in% "kNN")){
 
     acc_model[kk] <- caret::confusionMatrix(
-      kknn(formula_DM, trainingSet_DM, testSet_DM, k=3)$CL[,3],
+      as.factor(kknn(formula_DM, trainingSet_DM, testSet_DM, k=3)$CL[,3]),
       reference = testSet_DM$classes)$overall['Accuracy']
     names(acc_model)[kk] <- "kNN"
 

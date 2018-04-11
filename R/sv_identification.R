@@ -115,8 +115,18 @@ DaMiR.SV <- function(data,
 
   mod0 <- cbind(mod[,1])
 
+
+
   if (method == "fve"){
-    invisible(capture.output(svaobj <- sva(data_filt, mod, mod0, round(ncol(data)/2))))
+    if (round(ncol(data)) > 100){
+      n.sv.max <- 50
+    }else{
+      n.sv.max <- round(ncol(data)/2)
+    }
+    invisible(capture.output(svaobj <- sva(data_filt,
+                                           mod,
+                                           mod0,
+                                           n.sv.max)))
     pprob <- svaobj$pprob.gam*(1-svaobj$pprob.b)
     dats <- data_filt*pprob
     dats <- dats - rowMeans(dats)
@@ -129,11 +139,15 @@ DaMiR.SV <- function(data,
     # https://support.bioconductor.org/p/88553/#88690
     expl_var_plot <- as.data.frame(cbind(x_val, uu_val2, pve_cumsum))
     n.sv <- order(which(pve_cumsum<=th.fve), decreasing = TRUE)[1]
-    if(is.na(n.sv))
-      stop("No SV identified. Increase the value of 'th.fve'")
-    if (n.sv>round(ncol(data)/2)){
-      n.sv<-round(ncol(data)/2)
+    if(is.na(n.sv) | (n.sv == 0)){
+      sv_matrix <- 0
+      cat("No SV identified.")
+    }else{
+    if (n.sv > n.sv.max){
+      n.sv <- n.sv.max
     }
+    expl_var_plot <- expl_var_plot[seq_len(n.sv.max),]
+
     print(ggplot(expl_var_plot, aes(x_val,pve_cumsum)) +
             geom_point(size=3, color="blue")  +
             geom_text(aes(label=rownames(expl_var_plot)), hjust=0.5, vjust=2, size=3) +
@@ -144,18 +158,34 @@ DaMiR.SV <- function(data,
     # extract SVs
     sv_matrix <- as.matrix(svaobj$sv[, seq_len(n.sv)])
     cat("The number of SVs identified, which explain", th.fve*100, "% of Variance, is:", n.sv, "\n")
+}
+
   } else if(method == "leek") {
     n.sv <- num.sv(data_filt, mod = mod, method = "leek")
+    if(is.na(n.sv) | (n.sv == 0)){
+      sv_matrix <- 0
+      cat("No SV identified.")
+    }else{
     invisible(capture.output(svaobj <- sva(data_filt, mod, mod0, n.sv)))
+
     # extract SVs
     sv_matrix <- as.matrix(svaobj$sv)
     cat("The number of SVs identified by SVA (with method = 'leek')is:", n.sv, "\n")
+    }
+
+
   } else if(method == "be"){
     n.sv <- num.sv(data_filt , mod = mod, method = "be")
+    if(is.na(n.sv) | (n.sv == 0)){
+      sv_matrix <- 0
+      cat("No SV identified.")
+    }else{
     invisible(capture.output(svaobj <- sva(data_filt, mod, mod0, n.sv)))
     # extract SVs
     sv_matrix <- as.matrix(svaobj$sv)
     cat("The number of SVs identified by SVA (with method = 'be')is:", n.sv, "\n")
+    }
+
   } else {
     stop("Please set 'fve', 'leek' or 'be' as SV identification method.")
 

@@ -188,8 +188,8 @@ DaMiR.Allplot <- function(data,
   # check the presence of NA or Inf
   if (any(is.na(count_data)))
     stop("NA values are not allowed in the 'data' matrix")
-  if (any(is.na(df)))
-    stop("NA values are not allowed in the 'df' matrix")
+  # if (any(is.na(df)))
+  #   stop("NA values are not allowed in the 'df' matrix")
   if (any(is.infinite(count_data)))
     stop("Inf values are not allowed in the 'data' matrix")
 
@@ -231,11 +231,24 @@ DaMiR.Allplot <- function(data,
   ################
   ## MDS plot
   mdsData <- data.frame(cmdscale(sampleDistMatrix))
-  mds <- cbind(mdsData, df)
+
 
   for(i in seq_len(ncol(df))) {
+    mds <- cbind(mdsData, df)
     cov_list <- mds[,i+2,drop=FALSE]
     colnames(cov_list)<-"Vars"
+    # cov_list$Vars <- droplevels(cov_list$Vars)
+    #checkNA
+    NA_idx <- which(is.na(cov_list$Vars))
+
+    if(length(NA_idx) != 0){
+      cov_list <- cov_list[-NA_idx,,drop=FALSE]
+      mds <- mds[-NA_idx,]
+      #cov_list$Vars <- droplevels(cov_list$Vars)
+      cat("MDS:",length(NA_idx),
+          "samples not drawn (because 'NA') for variable:",
+          colnames(df)[i],"\n")
+    }
 
     print(ggplot(mds, aes(X1, X2, shape=mds$class, color=cov_list$Vars)) +
             geom_point(size=3) +

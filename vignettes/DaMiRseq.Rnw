@@ -500,6 +500,7 @@ selected_features_2 <- DaMiR.FBest(data_reduced_2, ranking=df.importance_2,
 selected_features_2$predictors
 
 ## Classification
+
 Classification_res_2 <- DaMiR.EnsembleLearning(selected_features_2$data,
                                              classes=df_2$class,
                                              fSample.tr = 0.5,

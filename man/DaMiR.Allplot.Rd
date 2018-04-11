@@ -40,7 +40,7 @@ Plots will not be drawn in the presence of NAs.
 data(data_norm)
 data(df)
 # Draw clustering dendrogram and heatmap, MDS, RLE boxplot:
-DaMiR.Allplot(data=data_norm, df=df)
+DaMiR.Allplot(data=data_norm, df=df[,5,drop=FALSE])
 
 }
 \author{

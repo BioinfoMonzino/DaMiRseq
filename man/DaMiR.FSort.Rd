@@ -58,7 +58,8 @@ this step.
 data(data_reduced)
 data(df)
 # rank features by importance:
-df.importance <- DaMiR.FSort(data_reduced, df, fSample = 0.75)
+df.importance <- DaMiR.FSort(data_reduced[,1:10],
+ df, fSample = 0.75)
 
 }
 \references{
