@@ -73,7 +73,7 @@ Finally, expressed features will be normalized by
 # use example data:
 data(SE)
 # perform normalization on a subset of data:
-SE_sub<-SE[1:10000, c(1:3, 21:23)]
+SE_sub<-SE[1:1000, c(1:3, 21:23)]
 data_norm <- DaMiR.normalization(SE_sub, minCounts=10, fSample=0.8,
 hyper="yes", th.cv = 2.5)
 

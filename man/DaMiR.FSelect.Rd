@@ -75,9 +75,10 @@ data(df)
 # extract expression data from SummarizedExperiment object
 # and transpose the matrix:
 t_data<-t(assay(data_norm))
+t_data <- t_data[,seq_len(100)]
 # select class-related features
 data_reduced <- DaMiR.FSelect(t_data, df,
-th.corr = 0.7, type = "spearman", th.VIP = 2.5)
+th.corr = 0.7, type = "spearman", th.VIP = 1)
 
 }
 \references{
