@@ -37,14 +37,13 @@
 #'
 #' @examples
 #' rawdata.path <- system.file(package = "DaMiRseq","extdata")
-#' setwd(rawdata.path)
 #' # import tab-delimited files:
 #' # sample data are a small subset of Genotype-Tissue Expression (GTEx)
 #' # RNA-Seq database (dbGap Study Accession: phs000424.v6.p1):
-#' count_data <- read.delim("counts_import.txt")
-#' variables_data <- read.delim("annotation_import.txt")
+#' count_data <- read.delim(file.path(rawdata.path, "counts_import.txt"))
+#' variables_data <- read.delim(file.path(rawdata.path, "annotation_import.txt"))
 #' # create a SummarizedExperiment object:
-#' SE<-DaMiR.makeSE(count_data, variables_data)
+#' SE <- DaMiR.makeSE(count_data, variables_data)
 #' print(SE)
 #'
 #' @seealso
