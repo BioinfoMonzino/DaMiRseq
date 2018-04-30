@@ -3,7 +3,7 @@ Type: Package
 Date: 2018-04-23
 Title: Data Mining for RNA-seq data: normalization,
     feature selection and classification
-Version: 1.4.0
+Version: 1.5.0
 Author: Mattia Chiesa <mattia.chiesa@hotmail.it>, 
     Luca Piacentini <luca.piacentini@cardiologicomonzino.it>
 Maintainer: Mattia Chiesa <mattia.chiesa@hotmail.it>
