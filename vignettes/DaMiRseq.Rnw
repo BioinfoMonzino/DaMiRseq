@@ -528,7 +528,7 @@ Figure~\ref{fig_n11} shows the results of the variation to standard workflow of 
 \FloatBarrier
 
 \section{New implementations}
-\subsection{Version 1.3}
+\subsection{Version 1.4}
 
 Relevant modifications:
 \begin{itemize}
@@ -545,6 +545,11 @@ Minor modifications and bugs fixed:
   \item{In the \Rfunction{DaMiR.normalization} function, the gene filtering is desabled if \Rcode{minCount = 0};}
   \item{In the \Rfunction{DaMiR.EnsembleLearning} function, the method for implementing the Logistic Regression has been changed to allow multi-class comparisons; instead of the native \Rfunction{lm} function, the \Rcode{bayesglm} method implemented in the \CRANpkg{caret} \Rfunction{train} function is now used;}
   \item{The new parameter \Rcode{second.var} of the \Rfunction{DaMiR.SV} function, allows the user to take into account a secondary variable of interest (factorial or numerical) that the user does not wish to correct for, during the sv identification.}
+  \end{itemize}
+  
+ \subsection{Version 1.4.1} 
+\begin{itemize}
+  \item{Adjusted Sensitivity and Specificity calculations.}
   \end{itemize}
 
 
