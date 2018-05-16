@@ -508,11 +508,11 @@ DaMiR.EnsembleLearning2cl <- function(data,
   #   length(which(testSetClasses == levels(testSetClasses)[1]))
   # Specif.Class[jj,] <- TN_Class /
   #   length(which(testSetClasses == levels(testSetClasses)[2]))
-  
+
   Sensit.Class[jj,] <- TP_Class / (TP_Class + FN_Class)
   Specif.Class[jj,] <- TN_Class / (TN_Class + FP_Class)
-  
-  
+
+
   #PPV.Class[jj,] <- TP_Class / (TP_Class + FP_Class)
   #NPV.Class[jj,] <- TN_Class / (TN_Class + FN_Class)
 
@@ -530,124 +530,10 @@ DaMiR.EnsembleLearning2cl <- function(data,
   Sensit.Class<-round(Sensit.Class,2)
   Specif.Class<-round(Specif.Class,2)
 
-  ##
-  acc_dotplot <- melt(as.data.frame(acc.Class),
-                      measure.vars = colnames(acc.Class))
-
-  colnames(acc_dotplot) <- c("Classifiers","Accuracy")
-  print(ggplot(acc_dotplot, aes(x=Classifiers,y=Accuracy)) +
-    geom_violin(aes(fill=factor(Classifiers)),na.rm = TRUE)+
-    geom_dotplot(binaxis='y',
-                 stackdir='center',
-                 stackratio=1.5,
-                 dotsize=0.2,
-                 binwidth = 0.5) +
-    stat_summary(fun.data=mean_sdl,
-                 fun.args = list(mult=1),
-                 geom="pointrange",
-                 color="white") +
-      coord_cartesian(ylim=c(min(acc.Class)-5,100))
-    )
-  ##
-  ##
-  mcc_dotplot <- melt(as.data.frame(MCC.Class),
-                      measure.vars = colnames(MCC.Class))
-
-  colnames(mcc_dotplot) <- c("Classifiers","MCC")
-  print(ggplot(mcc_dotplot, aes(x=Classifiers,y=MCC)) +
-          geom_violin(aes(fill=factor(Classifiers)),na.rm = TRUE)+
-          geom_dotplot(binaxis='y',
-                       stackdir='center',
-                       stackratio=1.5,
-                       dotsize=0.002,
-                       binwidth = 0.5) +
-          stat_summary(fun.data=mean_sdl,
-                       fun.args = list(mult=1),
-                       geom="pointrange",
-                       color="white") +
-          coord_cartesian(ylim=c(min(MCC.Class)-0.05,1))
-        )
-  ##
-  ##
-  spe_dotplot <- melt(as.data.frame(Specif.Class),
-                      measure.vars = colnames(Specif.Class))
-
-  colnames(spe_dotplot) <- c("Classifiers","Specificity")
-  print(ggplot(spe_dotplot, aes(x=Classifiers,y=Specificity)) +
-          #ylim(0,1) +
-          geom_violin(aes(fill=factor(Classifiers)),na.rm = TRUE)+
-          geom_dotplot(binaxis='y',
-                       stackdir='center',
-                       stackratio=1.5,
-                       dotsize=0.002,
-                       binwidth = 0.5) +
-          stat_summary(fun.data=mean_sdl,
-                       fun.args = list(mult=1),
-                       geom="pointrange",
-                       color="white") +
-          coord_cartesian(ylim=c(min(Specif.Class)-0.05,1))
-        )
-  ##
-  ##
-  sen_dotplot <- melt(as.data.frame(Sensit.Class),
-                      measure.vars = colnames(Sensit.Class))
-
-  colnames(sen_dotplot) <- c("Classifiers","Sensitivity")
-  print(ggplot(sen_dotplot, aes(x=Classifiers,y=Sensitivity)) +
-          #ylim(0,1) +
-          geom_violin(aes(fill=factor(Classifiers)),na.rm = TRUE)+
-          geom_dotplot(binaxis='y',
-                       stackdir='center',
-                       stackratio=1.5,
-                       dotsize=0.002,
-                       binwidth = 0.5) +
-          stat_summary(fun.data=mean_sdl,
-                       fun.args = list(mult=1),
-                       geom="pointrange",
-                       color="white") +
-          coord_cartesian(ylim=c(min(Sensit.Class)-0.05,1))
-        )
-  ##
-
-  cat("Accuracy [%]:",
-      "\n",
-      colnames(acc.Class),
-      "\n",
-      "Mean:",round(colMeans(acc.Class),2),"\n","St.Dev.",
-      round(colSds(acc.Class),digits = 2),"\n")
-  cat("MCC score:",
-      "\n",
-      colnames(MCC.Class),
-      "\n",
-      "Mean:",round(colMeans(MCC.Class),2),"\n","St.Dev.",
-      round(colSds(MCC.Class),digits = 2),"\n")
-  cat("Specificity:",
-      "\n",
-      colnames(Specif.Class),
-      "\n",
-      "Mean:",round(colMeans(Specif.Class),2),"\n","St.Dev.",
-      round(colSds(Specif.Class),digits = 2),"\n")
-  cat("Sensitivity:",
-      "\n",
-      colnames(Sensit.Class),
-      "\n",
-      "Mean:",round(colMeans(Sensit.Class),2),"\n","St.Dev.",
-      round(colSds(Sensit.Class),digits = 2),"\n")
-#  cat("PPV:",
-#      "\n",
-#      colnames(PPV.Class),
-#      "\n",
-#      "Mean:",round(colMeans(PPV.Class),2),"\n","St.Dev.",
-#      round(colSds(PPV.Class),digits = 2),"\n")
-#  cat("NPV:",
-#      "\n",
-#      colnames(NPV.Class),
-#      "\n",
-#      "Mean:",round(colMeans(NPV.Class),2),"\n","St.Dev.",
-#      round(colSds(NPV.Class),digits = 2),"\n")	  
 
    return(list(accuracy = acc.Class,
                MCC = MCC.Class,
                Specif = Specif.Class,
                Sensit = Sensit.Class))
 }
+
