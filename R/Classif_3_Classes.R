@@ -470,31 +470,6 @@ DaMiR.EnsembleLearningNcl <- function(data,
   colnames(acc.Class) <- colnames(tPred)
   acc.Class<-round(acc.Class,2)
 
-
-  acc_dotplot <- melt(as.data.frame(acc.Class),
-                      measure.vars = colnames(acc.Class))
-
-  colnames(acc_dotplot) <- c("Classifiers","Accuracy")
-  print(ggplot(acc_dotplot, aes(x=Classifiers,y=Accuracy)) +
-    #ylim(min(acc_dotplot$Accuracy)-5,100) +
-    geom_violin(aes(fill=factor(Classifiers)),na.rm = TRUE)+
-    geom_dotplot(binaxis='y',
-                 stackdir='center',
-                 stackratio=1.5,
-                 dotsize=0.2,
-                 binwidth = 0.5) +
-    stat_summary(fun.data=mean_sdl,
-                 fun.args = list(mult=1),
-                 geom="pointrange",
-                 color="white"))
-
-  cat("Accuracy:",
-      "\n",
-      colnames(acc.Class),
-      "\n",
-      "Mean:",round(colMeans(acc.Class),2),"\n","St.Dev.",
-      round(colSds(acc.Class),digits = 1))
-
    return(list(accuracy = acc.Class))
 }
 
