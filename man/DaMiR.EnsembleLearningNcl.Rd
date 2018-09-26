@@ -13,8 +13,8 @@ DaMiR.EnsembleLearningNcl(data, classes, variables, fSample.tr = 0.7,
 Rows and Cols should be, respectively, observations and features}
 
 \item{classes}{A class vector with \code{nrow(data)} elements.
-Each element represents the class label for each observation. Only
-more than two different class labels are allowed}
+Each element represents the class label for each observation.
+More than two different class labels are allowed}
 
 \item{variables}{An optional data frame containing other variables
 (but without 'class' column). Each column represents a different
@@ -30,7 +30,7 @@ during weight estimation; default is 0.7}
 default is 100}
 
 \item{cl_type}{List of weak classifiers that will compose the
-meta-learners. Only "RF", "kNN", "SVM", "LDA", "LR", "NB", "NN", "PLS"
+meta-learners. "RF", "kNN", "SVM", "LDA", "LR", "NB", "NN", "PLS"
 are allowed. Default is c("RF", "LR", "kNN", "LDA", "NB", "SVM")}
 }
 \value{

@@ -55,9 +55,20 @@ opts_chunk$set(
 
 \packageVersion{\Sexpr{BiocStyle::pkg_ver("DaMiRseq")}}
 
+
 \newpage
 
 \tableofcontents
+
+\newpage
+
+\section{Citing DaMiRseq} \label{cite_DaMiR}
+For citing DaMiRseq:
+<<chu_citation, dev="pdf">>=
+
+citation("DaMiRseq")
+
+@
 
 \newpage
 
@@ -507,10 +518,9 @@ Classification_res_2 <- DaMiR.EnsembleLearning(selected_features_2$data,
                                              fSample.tr.w = 0.5,
                                              iter = 30)
 
-
 @
 
-The consequence of data adjustment is already remarkable after the feature selection and reduction steps. The number of selected genes, indeed, decreased from 220 to 98 when data adjustment was not performed, suggesting that hidden factors may influence gene expression and likely mask class-related features. Furthermore, the ranking of the important features also differs if data correction is not applied. The two sets of 5 genes that are used to build the classification models shares, in fact, only 1 gene. This suggests that data adjustment affects both the number and the quality of the features that can be selected for classification. Therefore, the overall classification performances, without the appropriate data correction, hugely felt down below 90\% of accuracy for all the classifiers.
+The consequence of data adjustment is already remarkable after the feature selection and reduction steps. The number of selected genes, indeed, decreased from 220 to 98 when data adjustment was not performed, suggesting that hidden factors may influence gene expression and likely mask class-related features. Furthermore, the ranking of the important features also differs if data correction is not applied. The two sets of 5 genes that are used to build the classification models shares, in fact, only 1 gene. This suggests that data adjustment affects both the number and the quality of the features that can be selected for classification. Therefore, the overall classification performances, without the appropriate data correction, felt down around 90\% of accuracy for all the classifiers.
 
 Figure~\ref{fig_n11} shows the results of the variation to standard workflow of \damir{}, proposed in this Section. Taking as reference the ``Standard Workflow'', described in Section~\ref{sect2}, we can observe that the performances significantly decrease.\\
 % \textbf{Accuracy} - RF: $92.33 \pm 5.5$, SVM: $95.5 \pm 3.3$, NB: $95.67 \pm 4.7$, LDA: $88.17 \pm 7$, LR: $95.33 \pm 3.9$, 3kNN: $93.17 \pm 6.9$.\\
@@ -527,30 +537,83 @@ Figure~\ref{fig_n11} shows the results of the variation to standard workflow of 
 \end{figure}
 \FloatBarrier
 
-\section{New implementations}
+\section{Check new implementations!}
+
+% vers 1.6
+\subsection{Version 1.6, devel: 1.5.2}
+Relevant modifications:
+ \begin{itemize}
+   \item{The \Rfunction{DaMiR.normalization} embeds also the 'logcpm' normalization, implemented in the \Biocpkg{edgeR} package.}
+   \item{Now, \Rfunction{DaMiR.EnsembleLearning} calculates also the Positive Predicted Values (PPV) and the Negative Predicted Values (NPV);}
+   \item{Three new functions have been implemented for the binary classification task: \Rfunction{DaMiR.EnsembleLearning2cl\_Training}, \Rfunction{DaMiR.EnsembleLearning2cl\_Test} and \Rfunction{DaMiR.EnsembleLearning2cl\_Predict}. The first one allows the user to implement the training task and to select the model with the highest accuracy or the average accuracy; the second function allows the user to test the selected classification model on a test set defined by the user; the last function allows the user to predict the class of new samples.}
+
+  \end{itemize}
+
+<<chu_ver_16, dev="pdf", eval=FALSE>>=
+
+# Training Set
+trainx <- selected_features$data[c(1:10,21:30),]
+trainy <- df$class[c(1:10,21:30)]
+
+# Test Set
+testx <- selected_features$data[c(11:15,31:35),]
+testy <- df$class[c(11:15,31:35)]
+
+# New predidictions
+predx <- selected_features$data[c(16:20,36:40),]
+predy <- df$class[c(16:20,36:40)]
+
+# Training and Validating Classifiers
+DaMiR.Ens.Tr_out <- DaMiR.EnsembleLearning2cl_Training(data = trainx,
+                                               classes = trainy,
+                                               fSample.tr.w = 0.8,
+                                               cl_type = c("RF","LR"),
+                                               type_model = "median",
+                                               iter = 100)
+
+# Testing Classifiers
+DaMiR.Ens.Ts_out <- DaMiR.EnsembleLearning2cl_Test(data = testx,
+                               classes = testy,
+                               models_List =  DaMiR.Ens.Tr_out)
+# New predictions
+DaMiR.Ens.Pred <- DaMiR.EnsembleLearning2cl_Predict(data = predx,
+                               models_List =  DaMiR.Ens.Tr_out)
+
+@
+
+Minor modifications and bugs fixed:
+
+\begin{itemize}
+   \item{Removed black dots in the violin plots.}
+  \end{itemize}
+
+% vers 1.4.1
+\subsection{Version 1.4.1}
+ \begin{itemize}
+   \item{Adjusted Sensitivity and Specificity calculations.}
+  \end{itemize}
+
+% vers 1.4
 \subsection{Version 1.4}
 
 Relevant modifications:
 \begin{itemize}
-  \item{\damir{} performs both binary and multi-class classification anlysis;}
+  \item{\damir{} performs both binary and multi-class classification analysis;}
   \item{The ``Stacking'' meta-learner can be composed by the user, setting the new parameter \Rcode{cl\_type} of the \Rfunction{DaMiR.EnsembleLearning} function. Any combination up to 8 classifiers (``RF'', ``NB'', ``kNN'', ``SVM'', ``LDA'', ``LR'', ``NN'', ``PLS'') is now allowed;}
   \item{If the dataset is imbalanced, a ``Down-Sampling'' strategy is automatically applied;}
-  \item{The \Rfunction{DaMiR.FSelect} function has the new argument, called \Rcode{nPlsIter}, which allows the user to have a more robust features set. In fact, several feature sets are generated by the \Rfunction{bve\_pls} fuction (embedded in \Rfunction{DaMiR.FSelect}), setting 'nPLSIter' parameter greater than 1. Finally, an intersection among all the feature sets is performed to return those features which constantly occur in all runs. However, by default, \Rcode{nPlsIter = 1}.}
+  \item{The \Rfunction{DaMiR.FSelect} function has the new argument, called \Rcode{nPlsIter}, which allows the user to have a more robust features set. In fact, several feature sets are generated by the \Rfunction{bve\_pls} function (embedded in \Rfunction{DaMiR.FSelect}), setting 'nPLSIter' parameter greater than 1. Finally, an intersection among all the feature sets is performed to return those features which constantly occur in all runs. However, by default, \Rcode{nPlsIter = 1}.}
   \end{itemize}
 
 Minor modifications and bugs fixed:
 \begin{itemize}
   \item{\Rfunction{DaMiR.Allplot} accepts also 'matrix' objects;}
   \item{The \Rfunction{DaMiR.normalization} function estimates the dispersion, through the parameter \Rcode{nFitType}; as in \Biocpkg{DESeq2} package, the argument can be 'parametric' (default), 'local' and 'mean';}
-  \item{In the \Rfunction{DaMiR.normalization} function, the gene filtering is desabled if \Rcode{minCount = 0};}
+  \item{In the \Rfunction{DaMiR.normalization} function, the gene filtering is disabled if \Rcode{minCount = 0};}
   \item{In the \Rfunction{DaMiR.EnsembleLearning} function, the method for implementing the Logistic Regression has been changed to allow multi-class comparisons; instead of the native \Rfunction{lm} function, the \Rcode{bayesglm} method implemented in the \CRANpkg{caret} \Rfunction{train} function is now used;}
   \item{The new parameter \Rcode{second.var} of the \Rfunction{DaMiR.SV} function, allows the user to take into account a secondary variable of interest (factorial or numerical) that the user does not wish to correct for, during the sv identification.}
   \end{itemize}
-  
- \subsection{Version 1.4.1} 
-\begin{itemize}
-  \item{Adjusted Sensitivity and Specificity calculations.}
-  \end{itemize}
+
+
 
 
 

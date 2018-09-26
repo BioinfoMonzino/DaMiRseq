@@ -10,8 +10,8 @@
 #' @param data A transposed data frame of normalized expression data.
 #' Rows and Cols should be, respectively, observations and features
 #' @param classes A class vector with \code{nrow(data)} elements.
-#'  Each element represents the class label for each observation. Only
-#'  more than two different class labels are allowed
+#'  Each element represents the class label for each observation.
+#'  More than two different class labels are allowed
 #' @param variables An optional data frame containing other variables
 #' (but without 'class' column). Each column represents a different
 #' covariate to be considered in the model
@@ -22,7 +22,7 @@
 #' @param iter Number of iterations to assess classification accuracy;
 #' default is 100
 #' @param cl_type List of weak classifiers that will compose the
-#' meta-learners. Only "RF", "kNN", "SVM", "LDA", "LR", "NB", "NN", "PLS"
+#' meta-learners. "RF", "kNN", "SVM", "LDA", "LR", "NB", "NN", "PLS"
 #' are allowed. Default is c("RF", "LR", "kNN", "LDA", "NB", "SVM")
 #'
 #' @return A matrix of accuracies of each classifier in each iteration.

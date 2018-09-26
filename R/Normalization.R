@@ -15,7 +15,7 @@
 #'  accross samples; default is 3
 #' @param type Type of normalization to be applied:
 #' \code{varianceStabilizingTransformation}
-#' (\code{vst}) or \code{rlog} are allowed; default is "\code{vst}"
+#' (\code{vst}), \code{rlog} or \code{logcpm} are allowed; default is "\code{vst}"
 #' @param nFitType Type of method to estimate the dispersion by vst or
 #' rlog. Default is "parametric". See details in \link{estimateDispersions}
 #'
@@ -77,7 +77,7 @@ DaMiR.normalization <- function(data,
                                 fSample=0.5,
                                 hyper=c("yes","no"),
                                 th.cv=3,
-                                type=c("vst","rlog"),
+                                type=c("vst","rlog","logcpm"),
                                 nFitType=c("parametric", "local", "mean")){
   # check missing arguments
   if (missing(data))
@@ -171,7 +171,12 @@ DaMiR.normalization <- function(data,
     data_norm <-rlog(exprs_counts,
                      fitType = nFitType)
 	rownames(data_norm) <- rownames(exprs_counts)
-	}else{
+  } else if (type == "logcpm"){
+    cat("Performing Normalization by 'log2cpm'",
+        "\n")
+    data_norm <- cpm(exprs_counts,log = TRUE, prior.count = 1)
+    rownames(data_norm) <- rownames(exprs_counts)
+  } else{
     stop("Please set 'vst or 'rlog' as normalization type.")
   }
 

@@ -6,8 +6,8 @@
 Normalization}
 \usage{
 DaMiR.normalization(data, minCounts = 10, fSample = 0.5, hyper = c("yes",
-  "no"), th.cv = 3, type = c("vst", "rlog"), nFitType = c("parametric",
-  "local", "mean"))
+  "no"), th.cv = 3, type = c("vst", "rlog", "logcpm"),
+  nFitType = c("parametric", "local", "mean"))
 }
 \arguments{
 \item{data}{A \code{SummarizedExperiment} object}
@@ -25,7 +25,7 @@ accross samples; default is 3}
 
 \item{type}{Type of normalization to be applied:
 \code{varianceStabilizingTransformation}
-(\code{vst}) or \code{rlog} are allowed; default is "\code{vst}"}
+(\code{vst}), \code{rlog} or \code{logcpm} are allowed; default is "\code{vst}"}
 
 \item{nFitType}{Type of method to estimate the dispersion by vst or
 rlog. Default is "parametric". See details in \link{estimateDispersions}}

@@ -1,9 +1,9 @@
 Package: DaMiRseq
 Type: Package
-Date: 2018-05-10
+Date: 2018-09-25
 Title: Data Mining for RNA-seq data: normalization,
     feature selection and classification
-Version: 1.5.1
+Version: 1.5.2
 Author: Mattia Chiesa <mattia.chiesa@hotmail.it>, 
     Luca Piacentini <luca.piacentini@cardiologicomonzino.it>
 Maintainer: Mattia Chiesa <mattia.chiesa@hotmail.it>
@@ -31,7 +31,7 @@ VignetteBuilder: knitr
 Imports: DESeq2, limma, EDASeq, RColorBrewer, sva, Hmisc, pheatmap,
     FactoMineR, corrplot, randomForest, e1071, caret, MASS, lubridate,
     plsVarSel, kknn, FSelector, methods, stats, utils, graphics, grDevices,
-    reshape2, ineq, arm, pls, RSNNS
+    reshape2, ineq, arm, pls, RSNNS, edgeR
 Suggests: BiocStyle, knitr, testthat
 Depends: R (>= 3.4), SummarizedExperiment, ggplot2
 RoxygenNote: 6.0.1

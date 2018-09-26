@@ -1,6 +1,6 @@
-#' @title Build a Binary Classifier using 'Staking' Learning strategy.
+#' @title Train a Binary Classifier using 'Staking' Learning strategy.
 #'
-#' @description This function implements a 'Stacking' ensemble learning
+#' @description This function learn a meta learner by a 'Stacking'
 #' strategy.
 #' Users can provide heterogeneous features (other than genomic features)
 #' which will be taken into account during
@@ -10,53 +10,33 @@
 #' @param data A transposed data frame of normalized expression data.
 #' Rows and Cols should be, respectively, observations and features
 #' @param classes A class vector with \code{nrow(data)} elements.
-#'  Each element represents the class label for each observation.
-#'  Two different class labels are allowed
+#'  Each element represents the class label for each observation. Two
+#'  different class labels are allowed
 #' @param variables An optional data frame containing other variables
 #' (but without 'class' column). Each column represents a different
 #' covariate to be considered in the model
-#' @param fSample.tr Fraction of samples to be used as training set;
-#'  default is 0.7
 #' @param fSample.tr.w Fraction of samples of training set to be used
 #' during weight estimation; default is 0.7
 #' @param iter Number of iterations to assess classification accuracy;
 #' default is 100
 #' @param cl_type List of weak classifiers that will compose the
-#' meta-learners. "RF", "kNN", "SVM", "LDA", "LR", "NB", "NN", "PLS"
-#' are allowed. Default is c("RF", "LR", "kNN", "LDA", "NB", "SVM")
+#' meta-learners. "RF", "SVM", "LDA", "LR", "NB", "NN", "PLS"
+#' are allowed. Default is c("RF", "LR", "LDA", "NB", "SVM")
+#' @param type_model Select the model with the median or best accuracy
+#' over the iteration. "median" and "best" are allowed.
+#' Default: median
 #'
 #' @return A list containing:
 #' \itemize{
-#'   \item A matrix of accuracies of each classifier in each iteration.
-#'   \item A matrix of weights used for each classifier in each iteration.
-#'   \item A list of all models generated in each iteration.
-#'   \item A violin plot of model accuracy obtained for each iteration.
+#'   \item The models of each classifier used to build the Ensemble
+#'   meta-learner with the median or the best accuracy
+#'   (over the iteration) for the Ensemble classifier;
+#'   \item the weights associated to each weak classifier;
 #' }
 #'
 #' @details
-#' To assess the robustness of a set of predictors, a specific 'Stacking'
-#' strategy
-#' has been implemented. First, a training set (TR1) and a test set (TS1)
-#'  are generated
-#' by 'bootstrap' sampling. Then, sampling again from TR1 subset, another
-#' pair of training (TR2) and test set (TS2) are obtained. TR2 is used to
-#' train
-#' Random Forest (RF), Naive Bayes (NB), Support Vector Machines
-#' (SVM), k-Nearest Neighbour (kNN), Linear Discriminant Analysis (LDA)
-#' and Logistic
-#' Regression (LR) classifiers, whereas TS2 is used to test their accuracy
-#'  and to calculate weights.
-#' The decision rule of 'Stacking' classifier is made by a linear
-#' combination of the
-#' product between weigths (w) and predictions (Pr) of each classifier;
-#' for each sample k, the prediction
-#' is computed by:
-#'  \deqn{Pr_{k, Ensemble} = w_{RF} * Pr_{k, RF} + w_{NB} * Pr_{k, NB} +
-#'   w_{SVM} * Pr_{k, SVM} + w_{k, kNN} * Pr_{k, kNN} +
-#'  w_{k, LDA} * Pr_{k, LDA} + w_{k, LR} * Pr_{k, LR}}
-#' Performance of 'Stacking' classifier is evaluated by using TS1. This
-#' process is
-#' repeated several times (default 100 times).
+#' This function implements the training step of
+#' \link{DaMiR.EnsembleLearning2cl} function
 #'
 #' @author Mattia Chiesa, Luca Piacentini
 #'
@@ -65,44 +45,47 @@
 #' data(selected_features)
 #' data(df)
 #' set.seed(1)
-#' # only for the example:
+#' # For the example:
 #' # speed up the process setting a low 'iter' argument value;
 #' # for real data set use default 'iter' value (i.e. 100) or higher:
-#' #  Classification_res <- DaMiR.EnsembleLearning(selected_features,
-#' # classes=df$class, fSample.tr=0.6, fSample.tr.w=0.6, iter=3,
-#' # cl_type=c("RF","kNN"))
+#' #  Classification_res <- DaMiR.EnsembleLearning2cl_Training(
+#' #  selected_features,classes=df$class, fSample.tr.w=0.6, iter=3,
+#' # cl_type=c("RF","LR"))
 #'
 #' @export
 #'
 #'
-DaMiR.EnsembleLearning2cl <- function(data,
-                                   classes,
-                                   variables,
-                                   fSample.tr=0.7,
-                                   fSample.tr.w=0.7,
-                                   iter=100,
-                                   cl_type=c("RF",
-                                             "kNN",
-                                             "SVM",
-                                             "LDA",
-                                             "LR",
-                                             "NB",
-                                             "NN",
-                                             "PLS")){
+DaMiR.EnsembleLearning2cl_Training <- function(data,
+                                      classes,
+                                      variables,
+                                      fSample.tr.w=0.7,
+                                      iter=100,
+                                      cl_type=c("RF",
+                                                "SVM",
+                                                "LDA",
+                                                "LR",
+                                                "NB",
+                                                "NN",
+                                                "PLS"),
+                                      type_model=c("median",
+                                                   "best")){
   # check missing arguments
   if (missing(data))
     stop("'data' argument must be provided")
   if (missing(classes))
     stop("'classes' argument must be provided")
   if (missing(cl_type)){
-    cl_type <- c("RF", "LR", "kNN", "LDA", "NB", "SVM")
+    cl_type <- c("RF", "LR", "LDA", "NB", "SVM")
   }
+  if (missing(type_model)){
+    type_model <- "median"
+  }
+
+
 
   # check the type of argument
   if(!(is.data.frame(data)))
     stop("'data' must be a data frame")
-  if(!(is.numeric(fSample.tr)))
-    stop("'fSample.tr' must be numeric")
   if(!(is.numeric(fSample.tr.w)))
     stop("'fSample.tr.w' must be numeric")
   if(!(is.numeric(iter)))
@@ -111,15 +94,10 @@ DaMiR.EnsembleLearning2cl <- function(data,
     stop("'classes' must be a factor")
 
   # specific checks
-  if (fSample.tr >0.9 | fSample.tr < 0.5)
-    stop("'fSample.tr' must be between 0.5 and 1")
   if (fSample.tr.w >0.9 | fSample.tr.w < 0.5)
     stop("'th.corr' must be between 0.5 and 1")
   if (iter < 1)
     stop("'iter' must be greater than 1")
-  if((dim(data)[1]-round(dim(data)[1]*fSample.tr)) == 0)
-    stop("The Test Set is not available. Decrease 'fSample.tr'
-         or increase the number of observation.")
   if((dim(data)[1]-round(dim(data)[1]*fSample.tr.w)) == 0)
     stop("A Test Set is not available to weight classifiers.
          Decrease 'fSample.tr.w' or increase the number of observation.")
@@ -151,42 +129,12 @@ DaMiR.EnsembleLearning2cl <- function(data,
 
   ## body
 
-  # find the min number of sample per class
-  min_sub <-0
-  class_level <- levels(classes)
-  for (i in seq_len(length(class_level))){
-    min_sub[i] <- length(which(class_level[i]==classes))
-  }
-  min_sample_each_class <- min(min_sub)
-  if (min_sample_each_class < 3 )
-    stop("At least 3 samples are needed!")
-
-  if (!(all(cl_type %in% c("RF", "kNN","SVM","LDA","LR","NB","NN","PLS"))))
+  if (!(all(cl_type %in% c("RF", "SVM","LDA","LR","NB","NN","PLS"))))
     stop("'cl_type' must be
-         'RF', 'kNN', 'SVM', 'LDA', 'LR', 'NB', 'NN', 'PLS'")
-  ###################################
-  acc.Class<-matrix()
-  # find an exact number of sample for each group
-  # use the others for the Independent TestSet
-  sample_index_list <- ""
-  for (i in seq_len(length(class_level))){
-    sample_index <- sample(which(class_level[i]==classes),replace = FALSE)
-    sample_index <- sample_index[seq_len(min_sample_each_class)]
-    sample_index_list <- c(sample_index_list,sample_index)
-  }
-  sample_index_list <- as.numeric(sample_index_list[-1])
+         'RF', 'SVM', 'LDA', 'LR', 'NB', 'NN', 'PLS'")
 
-  # Start to create independent TestSet
-  index_indep <- setdiff(seq_len(dim(data)[1]), sample_index_list)
-  if(length(index_indep) != 0){
-  independentTestSet <- data[index_indep,, drop=FALSE]
-  independentClasses <- classes[index_indep, drop=FALSE]
-  independentClasses <- droplevels(independentClasses)
-  }
-  # create datset for DM
-  dataset <- data[sample_index_list,, drop=FALSE]
-  datasetClasses <- classes[sample_index_list, drop=FALSE]
-  datasetClasses <- droplevels(datasetClasses)
+  if (!(all(type_model %in% c("median","best"))))
+    stop("'type_model' must be 'median','best'")
 
   # training and test
   cat("You select:",cl_type, "weak classifiers for creating
@@ -196,64 +144,43 @@ DaMiR.EnsembleLearning2cl <- function(data,
 
 
   acc.Class<- matrix()
-  # start bootstrapping
+
+  wei_all <- matrix(nrow = iter,ncol = length(cl_type))
+  model_rf_all <- list()
+  model_svm_all <- list()
+  model_nb_all <- list()
+  model_lr_all <- list()
+  model_nn_all <- list()
+  model_lda_all <- list()
+  model_pls_all <- list()
+
+
+  # start training
   for (jj in seq_len(iter)){
-
-    # Sampling
-    sample_index_train <- ""
-    class_level <- levels(datasetClasses)
-    tr_sample <- round(dim(dataset)[1]*fSample.tr/length(class_level))
-    for (i in seq_len(length(class_level))){
-      sample_index <- sample(which(class_level[i]==datasetClasses),
-                             replace = FALSE)[seq_len(tr_sample)]
-      sample_index_train <- c(sample_index_train,sample_index)
-    }
-    sample_index_train <- as.numeric(sample_index_train[-1])
-
-    # create TrainingSet for DM
-    trainingSet <- dataset[sample_index_train,, drop=FALSE]
-    trainingSetClasses <- datasetClasses[sample_index_train,
-                                         drop=FALSE]
-    trainingSetClasses <- droplevels(trainingSetClasses)
-
-    # create TestSet
-    sample_index_test <- setdiff(seq_len(dim(dataset)[1]),
-                                 sample_index_train)
-    testSet <- dataset[sample_index_test,, drop=FALSE]
-    testSetClasses <- datasetClasses[sample_index_test]
-    testSetClasses <- droplevels(testSetClasses)
-
-    # merge TestSet and Independent testSet (if exists)
-    if(length(index_indep) != 0){
-      testSet <- rbind(independentTestSet,testSet)
-      testSetClasses <- as.factor(c(as.character(independentClasses),
-                                    as.character(testSetClasses)))
-      testSetClasses <- droplevels(testSetClasses)
-    }
 
     # Sample Training for weighting
     sample_index_train2 <- ""
-    class_level2 <- levels(trainingSetClasses)
+    class_level2 <- levels(classes)
     tr_sample2 <- round(
-      dim(trainingSet)[1]*fSample.tr.w/length(class_level2))
+      dim(data)[1]*fSample.tr.w/length(class_level2))
     for (i in seq_len(length(class_level2))){
-      sample_index2 <- sample(which(class_level2[i]==trainingSetClasses),
-                             replace = FALSE)[seq_len(tr_sample2)]
+      sample_index2 <- sample(which(class_level2[i]==classes),
+                              replace = FALSE)[seq_len(tr_sample2)]
       sample_index_train2 <- c(sample_index_train2,sample_index2)
     }
     sample_index_train2 <- as.numeric(sample_index_train2[-1])
 
     # create TrainingSet for weighting
-    trainingSet2 <- trainingSet[sample_index_train2,, drop=FALSE]
-    trainingSetClasses2 <- trainingSetClasses[sample_index_train2,
+    trainingSet2 <- data[sample_index_train2,, drop=FALSE]
+    trainingSetClasses2 <- classes[sample_index_train2,
                                               drop=FALSE]
     trainingSetClasses2 <- droplevels(trainingSetClasses2)
 
     # create TestSet for weighting
-    sample_index_test2 <- setdiff(seq_len(dim(trainingSet)[1]),
+    sample_index_test2 <- setdiff(seq_len(dim(data)[1]),
                                   sample_index_train2)
-    testSet2 <- trainingSet[sample_index_test2,, drop=FALSE]
-    testSetClasses2 <- trainingSetClasses[sample_index_test2,
+    testSet2 <- data[sample_index_test2,, drop=FALSE]
+    testSetClasses2 <- classes[sample_index_test2,
                                           drop=FALSE]
     testSetClasses2 <- droplevels(testSetClasses2)
 
@@ -290,6 +217,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
 
       model_class[[kk]] <- model_rf
       kk <- kk +1
+      model_rf_all[[jj]] <- model_rf
     }
 
 
@@ -301,7 +229,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
                                  gamma = 10^(-6:-1),
                                  cost = 10^(1:4),
                                  tunecontrol = tune.control(
-                                  # cross = min(min_sub,10) ))
+                                   # cross = min(min_sub,10) ))
                                    cross = min(dim(trainingSet_DM)[1],10) ))
       model_svm <- svm(formula = formula_DM,
                        data = trainingSet_DM,
@@ -315,35 +243,39 @@ DaMiR.EnsembleLearning2cl <- function(data,
 
       model_class[[kk]] <- model_svm
       kk <- kk +1
+      model_svm_all[[jj]] <- model_svm
+
     }
 
 
     # Naive Bayes
     if (any(cl_type %in% "NB")){
 
-    model_nb <- naiveBayes(formula = formula_DM,
-                           data = trainingSet_DM)
-    acc_model[kk] <- caret::confusionMatrix(
-      predict(model_nb, testSet_DM),
-      reference = testSet_DM$classes)$overall['Accuracy']
-    names(acc_model)[kk] <- "NB"
+      model_nb <- naiveBayes(formula = formula_DM,
+                             data = trainingSet_DM)
+      acc_model[kk] <- caret::confusionMatrix(
+        predict(model_nb, testSet_DM),
+        reference = testSet_DM$classes)$overall['Accuracy']
+      names(acc_model)[kk] <- "NB"
 
-    model_class[[kk]] <- model_nb
-    kk <- kk +1
+      model_class[[kk]] <- model_nb
+      kk <- kk +1
+      model_nb_all[[jj]] <- model_nb
     }
 
 
     # Linear Discriminant Analysis
     if (any(cl_type %in% "LDA")){
-    model_lda <- lda(formula = formula_DM,
-                     data = trainingSet_DM)
-    acc_model[kk] <- caret::confusionMatrix(
-      predict(model_lda, testSet_DM)$class,
-      reference = testSet_DM$classes)$overall['Accuracy']
-    names(acc_model)[kk] <- "LDA"
+      model_lda <- lda(formula = formula_DM,
+                       data = trainingSet_DM)
+      acc_model[kk] <- caret::confusionMatrix(
+        predict(model_lda, testSet_DM)$class,
+        reference = testSet_DM$classes)$overall['Accuracy']
+      names(acc_model)[kk] <- "LDA"
 
-        model_class[[kk]] <- model_lda
-    kk <- kk +1
+      model_class[[kk]] <- model_lda
+      kk <- kk +1
+      model_lda_all[[jj]] <- model_lda
     }
 
 
@@ -360,6 +292,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
 
       model_class[[kk]] <- model_lr
       kk <- kk +1
+      model_lr_all[[jj]] <- model_lr
     }
 
     # Neural Networks
@@ -375,76 +308,81 @@ DaMiR.EnsembleLearning2cl <- function(data,
 
       model_class[[kk]] <- model_nn
       kk <- kk +1
+      model_nn_all[[jj]] <- model_nn
+
     }
 
     # PLS
     if (any(cl_type %in% "PLS")){
       model_pls <- caret::train(formula_DM,
-                               method="pls",
-                               data = trainingSet_DM)
+                                method="pls",
+                                data = trainingSet_DM)
       acc_model[kk] <- caret::confusionMatrix(
         predict(model_pls, testSet_DM),
         reference = testSet_DM$classes)$overall['Accuracy']
       names(acc_model)[kk] <- "PLS"
 
       model_class[[kk]] <- model_pls
-      kk <- kk +1
+      model_pls_all[[jj]] <- model_pls
+
+      #kk <- kk +1
     }
 
-    # k-Nearest Neighbours
-    if (any(cl_type %in% "kNN")){
-
-    acc_model[kk] <- caret::confusionMatrix(
-      as.factor(kknn(formula_DM, trainingSet_DM, testSet_DM, k=3)$CL[,3]),
-      reference = testSet_DM$classes)$overall['Accuracy']
-    names(acc_model)[kk] <- "kNN"
-
-    }
+    # # k-Nearest Neighbours
+    # if (any(cl_type %in% "kNN")){
+    #
+    #   acc_model[kk] <- caret::confusionMatrix(
+    #     as.factor(kknn(formula_DM, trainingSet_DM, testSet_DM, k=3)$CL[,3]),
+    #     reference = testSet_DM$classes)$overall['Accuracy']
+    #   names(acc_model)[kk] <- "kNN"
+    #
+    # }
 
     # Weighting
     wei <- acc_model/sum(acc_model)
+    wei_all[jj,] <- wei
 
     ###############################################
-    ## Test New samples
-
-    tPred <- matrix(nrow = dim(testSet)[1],
+    ## Test Samples
+    testSetClasses <- testSet_DM$classes
+    tPred <- matrix(nrow = dim(testSet_DM)[1],
                     ncol = (length(wei) + 1))
     colnames(tPred) <- c("Ensemble",names(wei))
 
-    for (ii in seq_len(dim(testSet)[1])){
+    for (ii in seq_len(dim(testSet_DM)[1])){
 
       if (any(colnames(tPred) %in% "RF")){
-        if(predict(model_rf,testSet[ii,]) == levels(testSetClasses)[1])
+        if(predict(model_rf,testSet_DM[ii,]) == levels(testSetClasses)[1])
         {tPred[ii,which(colnames(tPred) %in% "RF")] <- 1 }
         else{tPred[ii,which(colnames(tPred) %in% "RF")] <- 0 }
       }
       if (any(colnames(tPred) %in% "SVM")){
-        if(predict(model_svm,testSet[ii,]) == levels(testSetClasses)[1])
+        if(predict(model_svm,testSet_DM[ii,]) == levels(testSetClasses)[1])
         {tPred[ii,which(colnames(tPred) %in% "SVM")] <- 1 }
         else{tPred[ii,which(colnames(tPred) %in% "SVM")] <- 0 }
       }
       if (any(colnames(tPred) %in% "NB")){
-        if(predict(model_nb,testSet[ii,]) == levels(testSetClasses)[1])
+        if(predict(model_nb,testSet_DM[ii,]) == levels(testSetClasses)[1])
         {tPred[ii,which(colnames(tPred) %in% "NB")] <- 1 }
         else{tPred[ii,which(colnames(tPred) %in% "NB")] <- 0 }
       }
       if (any(colnames(tPred) %in% "LDA")){
-        if(predict(model_lda,testSet[ii,])$class == levels(testSetClasses)[1])
+        if(predict(model_lda,testSet_DM[ii,])$class == levels(testSetClasses)[1])
         {tPred[ii,which(colnames(tPred) %in% "LDA")] <- 1 }
         else{tPred[ii,which(colnames(tPred) %in% "LDA")] <- 0 }
       }
       if (any(colnames(tPred) %in% "LR")){
-        if(predict(model_lr,testSet[ii,]) == levels(testSetClasses)[1])
+        if(predict(model_lr,testSet_DM[ii,]) == levels(testSetClasses)[1])
         {tPred[ii,which(colnames(tPred) %in% "LR")] <- 1 }
         else{tPred[ii,which(colnames(tPred) %in% "LR")] <- 0 }
       }
       if (any(colnames(tPred) %in% "NN")){
-        if(predict(model_nn,testSet[ii,]) == levels(testSetClasses)[1])
+        if(predict(model_nn,testSet_DM[ii,]) == levels(testSetClasses)[1])
         {tPred[ii,which(colnames(tPred) %in% "NN")] <- 1 }
         else{tPred[ii,which(colnames(tPred) %in% "NN")] <- 0 }
       }
       if (any(colnames(tPred) %in% "PLS")){
-        if(predict(model_pls,testSet[ii,]) == levels(testSetClasses)[1])
+        if(predict(model_pls,testSet_DM[ii,]) == levels(testSetClasses)[1])
         {tPred[ii,which(colnames(tPred) %in% "PLS")] <- 1 }
         else{tPred[ii,which(colnames(tPred) %in% "PLS")] <- 0 }
       }
@@ -452,7 +390,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
 
         if (kknn(formula_DM,
                  trainingSet_DM,
-                 testSet[ii,],
+                 testSet_DM[ii,],
                  k=3)$CL[,3] == levels(testSetClasses)[1])
         {tPred[ii,which(colnames(tPred) %in% "kNN")] <- 1 }
         else{tPred[ii,which(colnames(tPred) %in% "kNN")] <- 0 }
@@ -465,7 +403,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
                 wei*tPred[ii,-1]))
     }
 
-    # calculate scores
+   # calculate scores
     if(jj==1){
       acc.Class <- matrix(nrow=iter, ncol = length(colMeans(tPred)))
       MCC.Class <- acc.Class
@@ -480,41 +418,41 @@ DaMiR.EnsembleLearning2cl <- function(data,
 
     }
 
+    # per MCC
+    TP_Class <- colSums(tPred[
+      which(testSetClasses == levels(testSetClasses)[1]),,drop=FALSE] == 1)
+    TN_Class <- colSums(tPred[
+      which(testSetClasses == levels(testSetClasses)[2]),,drop=FALSE] == 0)
+    FP_Class <- colSums(tPred[
+      which(testSetClasses == levels(testSetClasses)[1]),,drop=FALSE] == 0)
+    FN_Class <- colSums(tPred[
+      which(testSetClasses == levels(testSetClasses)[2]),,drop=FALSE] == 1)
 
+    TP.Class[jj,] <- TP_Class
+    TN.Class[jj,] <- TN_Class
+    FP.Class[jj,] <- FP_Class
+    FN.Class[jj,] <- FN_Class
 
-      # per MCC
-      TP_Class <- colSums(tPred[
-        which(testSetClasses == levels(testSetClasses)[1]),,drop=FALSE] == 1)
-      TN_Class <- colSums(tPred[
-        which(testSetClasses == levels(testSetClasses)[2]),,drop=FALSE] == 0)
-      FP_Class <- colSums(tPred[
-        which(testSetClasses == levels(testSetClasses)[1]),,drop=FALSE] == 0)
-      FN_Class <- colSums(tPred[
-        which(testSetClasses == levels(testSetClasses)[2]),,drop=FALSE] == 1)
+    acc.Class[jj,] <- 100 * (TP_Class + TN_Class)/(
+      TP_Class + TN_Class +  FP_Class + FN_Class)
 
-      TP.Class[jj,] <- TP_Class
-      TN.Class[jj,] <- TN_Class
-      FP.Class[jj,] <- FP_Class
-      FN.Class[jj,] <- FN_Class
+    MCC.Class[jj,] <- (TP_Class * TN_Class - FP_Class * FN_Class) /
+      sqrt((TP_Class + FP_Class) * (TP_Class + FN_Class) *
+             (TN_Class + FP_Class) * (TN_Class + FN_Class))
 
-      acc.Class[jj,] <- (TP_Class + TN_Class)/(
-        TP_Class + TN_Class +  FP_Class + FN_Class)
-
-      MCC.Class[jj,] <- (TP_Class * TN_Class - FP_Class * FN_Class) /
-        sqrt((TP_Class + FP_Class) * (TP_Class + FN_Class) *
-               (TN_Class + FP_Class) * (TN_Class + FN_Class))
-
-
-  Sensit.Class[jj,] <- TP_Class / (TP_Class + FN_Class)
-  Specif.Class[jj,] <- TN_Class / (TN_Class + FP_Class)
-
-
-  PPV.Class[jj,] <- TP_Class / (TP_Class + FP_Class)
-  NPV.Class[jj,] <- TN_Class / (TN_Class + FN_Class)
+    Sensit.Class[jj,] <- TP_Class / (TP_Class + FN_Class)
+    Specif.Class[jj,] <- TN_Class / (TN_Class + FP_Class)
+    PPV.Class[jj,] <- TP_Class / (TP_Class + FP_Class)
+    NPV.Class[jj,] <- TN_Class / (TN_Class + FN_Class)
 
   }
 
+  acc.Class[which(is.nan(acc.Class))] <- 0
   MCC.Class[which(is.nan(MCC.Class))] <- 0
+  Sensit.Class[which(is.nan(Sensit.Class))] <- 0
+  Specif.Class[which(is.nan(Specif.Class))] <- 0
+  PPV.Class[which(is.nan(PPV.Class))] <- 0
+  NPV.Class[which(is.nan(NPV.Class))] <- 0
 
   colnames(acc.Class) <- colnames(tPred)
   colnames(MCC.Class) <- colnames(tPred)
@@ -523,6 +461,108 @@ DaMiR.EnsembleLearning2cl <- function(data,
   colnames(PPV.Class) <- colnames(tPred)
   colnames(NPV.Class) <- colnames(tPred)
 
+  rownames(acc.Class) <- paste0("M",seq_len(iter))
+  rownames(MCC.Class) <- paste0("M",seq_len(iter))
+  rownames(Sensit.Class) <- paste0("M",seq_len(iter))
+  rownames(Specif.Class) <- paste0("M",seq_len(iter))
+  rownames(PPV.Class) <- paste0("M",seq_len(iter))
+  rownames(NPV.Class) <- paste0("M",seq_len(iter))
+
+  ##########################find good model
+
+  if (type_model == "median"){
+    if((iter %% 2) == 0){
+      #even
+      id_models <- iter/2
+      }else{
+      #odd
+      id_models <- iter/2 - 0.5
+    }
+  }else{
+
+    id_models <- iter
+  }
+  model_id_ok <-c()
+  for (iii in seq_len(dim(acc.Class)[2])){
+    model_id_ok[iii] <- names(sort(acc.Class[,iii])[id_models])
+  }
+  colnames(wei_all) <- colnames(tPred[,-1])
+  model_id_ok <- as.data.frame(t(as.numeric(sub("M","",model_id_ok))))
+  colnames(model_id_ok) <- c("Ensemble",colnames(tPred[,-c(1),drop=FALSE]))
+
+  ############################ create output_data
+  #output:list
+  #wei: vector
+  output_data_list <- list()
+  label_list <- c()
+  k_list <- 1
+  if (any(colnames(model_id_ok) %in% "RF")){
+
+    #idx_model <- which(colnames(model_id_ok) %in% "RF")
+    idx_model <- which(colnames(model_id_ok) %in% "Ensemble")
+    output_data_list[[k_list]] <- model_rf_all[model_id_ok[,idx_model]]
+    label_list <- c(label_list,"RF")
+
+    k_list <- k_list + 1}
+
+  if (any(colnames(model_id_ok) %in% "SVM")){
+    #idx_model <- which(colnames(model_id_ok) %in% "SVM")
+    idx_model <- which(colnames(model_id_ok) %in% "Ensemble")
+    output_data_list[[k_list]] <- model_svm_all[model_id_ok[,idx_model]]
+    label_list <- c(label_list,"SVM")
+
+    k_list <- k_list + 1}
+
+  if (any(colnames(model_id_ok) %in% "NB")){
+    #idx_model <- which(colnames(model_id_ok) %in% "NB")
+    idx_model <- which(colnames(model_id_ok) %in% "Ensemble")
+    output_data_list[[k_list]] <- model_nb_all[model_id_ok[,idx_model]]
+    label_list <- c(label_list,"NB")
+
+    k_list <- k_list + 1}
+
+  if (any(colnames(model_id_ok) %in% "LDA")){
+    #idx_model <- which(colnames(model_id_ok) %in% "LDA")
+    idx_model <- which(colnames(model_id_ok) %in% "Ensemble")
+    output_data_list[[k_list]] <- model_lda_all[model_id_ok[,idx_model]]
+    label_list <- c(label_list,"LDA")
+
+    k_list <- k_list + 1}
+
+  if (any(colnames(model_id_ok) %in% "LR")){
+    #idx_model <- which(colnames(model_id_ok) %in% "LR")
+    idx_model <- which(colnames(model_id_ok) %in% "Ensemble")
+    output_data_list[[k_list]] <- model_lr_all[model_id_ok[,idx_model]]
+    label_list <- c(label_list,"LR")
+
+    k_list <- k_list + 1}
+
+  if (any(colnames(model_id_ok) %in% "NN")){
+    #idx_model <- which(colnames(model_id_ok) %in% "NN")
+    idx_model <- which(colnames(model_id_ok) %in% "Ensemble")
+    output_data_list[[k_list]] <- model_nn_all[model_id_ok[,idx_model]]
+    label_list <- c(label_list,"NN")
+
+    k_list <- k_list + 1}
+
+  if (any(colnames(model_id_ok) %in% "PLS")){
+    #idx_model <- which(colnames(model_id_ok) %in% "PLS")
+    idx_model <- which(colnames(model_id_ok) %in% "Ensemble")
+    output_data_list[[k_list]] <- model_pls_all[model_id_ok[,idx_model]]
+    label_list <- c(label_list,"PLS")
+
+    k_list <- k_list + 1}
+
+
+  # weights
+  idx_wei <- which(colnames(model_id_ok) %in% "Ensemble")
+  output_data_list[[k_list]] <- wei_all[model_id_ok[,idx_wei],]
+  label_list <- c(label_list,"Ensemble")
+
+  names(output_data_list) <-label_list
+  output_data_list$classes <- as.factor(class_level2)
+
+  ## plots
   acc.Class<-round(acc.Class,2)
   MCC.Class<-round(MCC.Class,2)
   Sensit.Class<-round(Sensit.Class,2)
@@ -530,24 +570,25 @@ DaMiR.EnsembleLearning2cl <- function(data,
   PPV.Class<-round(PPV.Class,2)
   NPV.Class<-round(NPV.Class,2)
 
-  ##
+
+  ## accuracy
   acc_dotplot <- melt(as.data.frame(acc.Class),
                       measure.vars = colnames(acc.Class))
 
   colnames(acc_dotplot) <- c("Classifiers","Accuracy")
   print(ggplot(acc_dotplot, aes(x=Classifiers,y=Accuracy)) +
-    geom_violin(aes(fill=factor(Classifiers)),na.rm = TRUE)+
-    # geom_dotplot(binaxis='y',
-    #              stackdir='center',
-    #              stackratio=1.5,
-    #              dotsize=0.2,
-    #              binwidth = 0.5) +
-    stat_summary(fun.data=mean_sdl,
-                 fun.args = list(mult=1),
-                 geom="pointrange",
-                 color="white") +
-      coord_cartesian(ylim=c(min(acc.Class)-0.05,1))
-    )
+          geom_violin(aes(fill=factor(Classifiers)),na.rm = TRUE)+
+          # geom_dotplot(binaxis='y',
+          #              stackdir='center',
+          #              stackratio=1.5,
+          #              dotsize=0.2,
+          #              binwidth = 0.5) +
+          stat_summary(fun.data=mean_sdl,
+                       fun.args = list(mult=1),
+                       geom="pointrange",
+                       color="white") +
+          coord_cartesian(ylim=c(min(acc.Class)-5,100))
+  )
   ##
   ##
   mcc_dotplot <- melt(as.data.frame(MCC.Class),
@@ -566,27 +607,7 @@ DaMiR.EnsembleLearning2cl <- function(data,
                        geom="pointrange",
                        color="white") +
           coord_cartesian(ylim=c(min(MCC.Class)-0.05,1))
-        )
-  ##
-  ##
-  spe_dotplot <- melt(as.data.frame(Specif.Class),
-                      measure.vars = colnames(Specif.Class))
-
-  colnames(spe_dotplot) <- c("Classifiers","Specificity")
-  print(ggplot(spe_dotplot, aes(x=Classifiers,y=Specificity)) +
-          #ylim(0,1) +
-          geom_violin(aes(fill=factor(Classifiers)),na.rm = TRUE)+
-          # geom_dotplot(binaxis='y',
-          #              stackdir='center',
-          #              stackratio=1.5,
-          #              dotsize=0.002,
-          #              binwidth = 0.5) +
-          stat_summary(fun.data=mean_sdl,
-                       fun.args = list(mult=1),
-                       geom="pointrange",
-                       color="white") +
-          coord_cartesian(ylim=c(min(Specif.Class)-0.05,1))
-        )
+  )
   ##
   ##
   sen_dotplot <- melt(as.data.frame(Sensit.Class),
@@ -606,8 +627,28 @@ DaMiR.EnsembleLearning2cl <- function(data,
                        geom="pointrange",
                        color="white") +
           coord_cartesian(ylim=c(min(Sensit.Class)-0.05,1))
-        )
+  )
   ##
+  ##
+  ##
+  spe_dotplot <- melt(as.data.frame(Specif.Class),
+                      measure.vars = colnames(Specif.Class))
+
+  colnames(spe_dotplot) <- c("Classifiers","Specificity")
+  print(ggplot(spe_dotplot, aes(x=Classifiers,y=Specificity)) +
+          #ylim(0,1) +
+          geom_violin(aes(fill=factor(Classifiers)),na.rm = TRUE)+
+          # geom_dotplot(binaxis='y',
+          #              stackdir='center',
+          #              stackratio=1.5,
+          #              dotsize=0.002,
+          #              binwidth = 0.5) +
+          stat_summary(fun.data=mean_sdl,
+                       fun.args = list(mult=1),
+                       geom="pointrange",
+                       color="white") +
+          coord_cartesian(ylim=c(min(Specif.Class)-0.05,1))
+  )
   ##
   ##
   ppv_dotplot <- melt(as.data.frame(PPV.Class),
@@ -661,35 +702,30 @@ DaMiR.EnsembleLearning2cl <- function(data,
       "\n",
       "Mean:",round(colMeans(MCC.Class),2),"\n","St.Dev.",
       round(colSds(MCC.Class),digits = 2),"\n")
-  cat("Specificity:",
-      "\n",
-      colnames(Specif.Class),
-      "\n",
-      "Mean:",round(colMeans(Specif.Class),2),"\n","St.Dev.",
-      round(colSds(Specif.Class),digits = 2),"\n")
   cat("Sensitivity:",
       "\n",
       colnames(Sensit.Class),
       "\n",
       "Mean:",round(colMeans(Sensit.Class),2),"\n","St.Dev.",
       round(colSds(Sensit.Class),digits = 2),"\n")
- cat("PPV:",
-     "\n",
-     colnames(PPV.Class),
-     "\n",
-     "Mean:",round(colMeans(PPV.Class),2),"\n","St.Dev.",
-     round(colSds(PPV.Class),digits = 2),"\n")
- cat("NPV:",
-     "\n",
-     colnames(NPV.Class),
-     "\n",
-     "Mean:",round(colMeans(NPV.Class),2),"\n","St.Dev.",
-     round(colSds(NPV.Class),digits = 2),"\n")
+  cat("Specificity:",
+      "\n",
+      colnames(Specif.Class),
+      "\n",
+      "Mean:",round(colMeans(Specif.Class),2),"\n","St.Dev.",
+      round(colSds(Specif.Class),digits = 2),"\n")
+   cat("PPV:",
+       "\n",
+       colnames(PPV.Class),
+       "\n",
+       "Mean:",round(colMeans(PPV.Class),2),"\n","St.Dev.",
+       round(colSds(PPV.Class),digits = 2),"\n")
+   cat("NPV:",
+       "\n",
+       colnames(NPV.Class),
+       "\n",
+       "Mean:",round(colMeans(NPV.Class),2),"\n","St.Dev.",
+       round(colSds(NPV.Class),digits = 2),"\n")
 
-   return(list(accuracy = acc.Class,
-               MCC = MCC.Class,
-               Specif = Specif.Class,
-               Sensit = Sensit.Class,
-               PPV = PPV.Class,
-               NPV = NPV.Class))
+  return(model_list = output_data_list)
 }
