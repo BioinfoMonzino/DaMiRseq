@@ -140,7 +140,10 @@ DaMiR.FSelect <- function(data,
     stop("'nPlsIter' must be positive")
   if ((nPlsIter %%1) != 0)
     stop("nPlsIter must be integer")
-
+  if (length(type) > 1)
+    stop("length(type) must be equal to 1")
+  if (!(all(type %in% c("pearson", "spearman"))))
+    stop("'type' must be 'pearson' or 'spearman'")
 
   correlation <-0
   features<-dim(data)[2]

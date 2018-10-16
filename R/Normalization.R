@@ -122,6 +122,10 @@ DaMiR.normalization <- function(data,
          Include the variable 'class' in colData(data) and label it 'class'!")
   if(!(nFitType %in% c("parametric", "local", "mean")))
     stop("'nFitType' must be 'parametric', 'local' or 'mean'")
+  if (length(type) > 1)
+    stop("length(type) must be equal to 1")
+  if (!(all(type %in% c("vst", "rlog", "logCPM"))))
+    stop("'type' must be 'vst', 'rlog' or 'logCPM' ")
 
   # start execution
   init_lenght<-dim(data)[1]
@@ -266,6 +270,10 @@ DaMiR.sampleFilt <- function(data,
          in colData(data) and label it 'class'!")
   if (th.corr > 1 | th.corr < 0)
     stop("'th.corr' must be between 0 and 1")
+  if (length(type) > 1)
+    stop("length(type) must be equal to 1")
+  if (!(all(type %in% c("pearson", "spearman"))))
+    stop("'type' must be 'pearson' or 'spearman'")
 
   count_data<-assay(data)
 

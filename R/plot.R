@@ -86,6 +86,10 @@ DaMiR.corrplot <- function(sv,
     stop("nrow(df) must be equal to nrow(sv)")
   if (sig.level >1 | sig.level < 0)
     stop("'sig.level' must be between 0 and 1")
+  if (length(type) > 1)
+    stop("length(type) must be equal to 1")
+  if (!(all(type %in% c("pearson", "spearman"))))
+    stop("'type' must be 'pearson' or 'spearman'")
 
   sva_corr <- as.data.frame(cbind(sv,df))
   for (i in seq_len(ncol(sva_corr))){
@@ -202,6 +206,10 @@ DaMiR.Allplot <- function(data,
     stop("This function works with normalized count data")
   if(dim(count_data)[2] != dim(df)[1])
     stop("ncol(assay(data)) must be equal to nrow(df)")
+  if (length(type) > 1)
+    stop("length(type) must be equal to 1")
+  if (!(all(type %in% c("pearson", "spearman"))))
+    stop("'type' must be 'pearson' or 'spearman'")
 
 
 
@@ -345,6 +353,10 @@ DaMiR.MDSplot <- function(data,
     stop("This function works with normalized count data")
   if(dim(t_count_data)[2] != dim(df)[1])
     stop("ncol(assay(data)) must be equal to nrow(df)")
+  if (length(type) > 1)
+    stop("length(type) must be equal to 1")
+  if (!(all(type %in% c("pearson", "spearman"))))
+    stop("'type' must be 'pearson' or 'spearman'")
 
 
   sample_list <- colnames(t_count_data)

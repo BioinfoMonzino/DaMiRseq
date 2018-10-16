@@ -16,7 +16,7 @@ SEtest <- DaMiR.makeSE(dataTestSV,covTestSV)
 
 #expected error
 expect_error(DaMiR.normalization())
-expect_error(DaMiR.normalization("SEtest"))
+expect_error(DaMiR.normalization(data = "SEtest"))
 expect_error(DaMiR.normalization(SEtest, minCounts="character"))
 expect_error(DaMiR.normalization(SEtest, fSample="character"))
 expect_error(DaMiR.normalization(SEtest, th.cv="character"))
