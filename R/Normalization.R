@@ -124,8 +124,8 @@ DaMiR.normalization <- function(data,
     stop("'nFitType' must be 'parametric', 'local' or 'mean'")
   if (length(type) > 1)
     stop("length(type) must be equal to 1")
-  if (!(all(type %in% c("vst", "rlog", "logCPM"))))
-    stop("'type' must be 'vst', 'rlog' or 'logCPM' ")
+  if (!(all(type %in% c("vst", "rlog", "logcpm"))))
+    stop("'type' must be 'vst', 'rlog' or 'logcpm' ")
 
   # start execution
   init_lenght<-dim(data)[1]
