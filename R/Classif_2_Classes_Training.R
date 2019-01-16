@@ -104,6 +104,13 @@ DaMiR.EnsembleLearning2cl_Training <- function(data,
   if(length(classes) != dim(data)[1])
     stop("length(classes) must be equal to dim(data)[1]")
 
+# check balanced dataset (Thanks to Dr. Pawel Karpinski)
+  class_lev_ckeck <- levels(classes)
+  count_cl1 <- length(which(classes %in% class_lev_ckeck[1]))
+  count_cl2 <- length(which(classes %in% class_lev_ckeck[2]))
+  if(count_cl1 != count_cl2)
+    stop("Trainingset must be balanced (same n. of samples in both classes)")
+	
   if (missing(variables)){
     data <- data
   } else {
