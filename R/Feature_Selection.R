@@ -446,10 +446,10 @@ DaMiR.FSort <- function(data, df, fSample=1){
     sample_index_list <- c(sample_index_list,sample_index)
   }
   sample_index_list <- as.numeric(sample_index_list[-1])
-
-  if (length(sample_index_list) < 9 )
-    stop("Few subjects have been selected for RRelieF.
-         Please increase 'fSample'.")
+  
+  # bug fixed. Thanks to Dr. Priti Prasad!
+  if (length(sample_index_list) < 3 )
+    stop("Few subjects have been selected for RRelieF.")
 
   # subset data for relieF
   dataset.relief <- data[sample_index_list,,drop=FALSE]
@@ -461,7 +461,14 @@ DaMiR.FSort <- function(data, df, fSample=1){
                                      paste(names(data),
                                            collapse = "+"),
                                      sep = " ~ "))
-  rel_res <- relief(formula = formula.relief, data = dataset.relief)
+  if (length(sample_index_list) < 10 ){
+    rel_res <- relief(formula = formula.relief, data = dataset.relief,
+	                  sample.size = length(sample_index_list),
+					  neighbours.count = floor(length(sample_index_list)/2))
+  }else{
+    rel_res <- relief(formula = formula.relief, data = dataset.relief)
+  }
+  
 
   # Importance plot
   imp_attrib <- rel_res[as.numeric(order(rel_res$attr_importance,
