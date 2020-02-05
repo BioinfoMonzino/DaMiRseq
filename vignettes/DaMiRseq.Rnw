@@ -14,11 +14,12 @@
 % tools::compactPDF("../inst/doc/DaMiRseq.pdf",gs_quality = "ebook")
 
 \documentclass{article}
-\usepackage[utf8x]{inputenc}
 
 <<style-knitr, eval=TRUE, echo=FALSE, results="asis">>=
 BiocStyle::latex(relative.path = TRUE)
 @
+
+\usepackage[utf8]{inputenc}
 \usepackage{subfig}% for combining multiple plots in one figure
 \usepackage[section]{placeins}
 \usepackage{amsmath}
