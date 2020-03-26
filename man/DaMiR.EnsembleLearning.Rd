@@ -5,8 +5,8 @@
 \title{Build Classifier using 'Staking' Ensemble Learning strategy.}
 \usage{
 DaMiR.EnsembleLearning(data, classes, variables, fSample.tr = 0.7,
-  fSample.tr.w = 0.7, iter = 100, cl_type = c("RF", "kNN", "SVM", "LDA",
-  "LR", "NB", "NN", "PLS"))
+  fSample.tr.w = 0.7, iter = 100, cl_type = c("RF", "kNN", "SVM",
+  "LDA", "LR", "NB", "NN", "PLS"))
 }
 \arguments{
 \item{data}{A transposed data frame of normalized expression data.

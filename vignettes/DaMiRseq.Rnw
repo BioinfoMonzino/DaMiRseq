@@ -9,7 +9,7 @@
 % library(knitr)
 % setwd("./vignettes/")
 
-% unlink(c("cache","figure","*.bst","*.sty","*.R","*.tex","*.log","*.aux","*.out","*.pdf","*.toc","*.blg","*.bbl"),recursive = T); Rcmd("Sweave --engine=knitr::knitr --pdf DaMiRseq.Rnw")
+% unlink(c("cache","figure","*.bst","*.sty","*.R","*.tex","*.log","*.aux","*.out","DaMiRseq.pdf","*.toc","*.blg","*.bbl"),recursive = T); Rcmd("Sweave --engine=knitr::knitr --pdf DaMiRseq.Rnw")
 % devtools::build_vignettes()
 % tools::compactPDF("../inst/doc/DaMiRseq.pdf",gs_quality = "ebook")
 
@@ -20,6 +20,7 @@ BiocStyle::latex(relative.path = TRUE)
 @
 
 \usepackage[utf8]{inputenc}
+
 \usepackage{subfig}% for combining multiple plots in one figure
 \usepackage[section]{placeins}
 \usepackage{amsmath}
@@ -46,7 +47,7 @@ opts_chunk$set(
 
 \affil{Immunology and Functional Genomics Unit, Centro Cardiologico Monzino, IRCCS, Milan, Italy;}
 
-\title{The DaMiRseq package - Data Mining for RNA-Seq data: normalization, feature selection and classification}
+\bioctitle{The DaMiRseq package - Data Mining for RNA-Seq data: normalization, feature selection and classification}
 
 \begin{document}
 
@@ -85,7 +86,7 @@ RNA-Seq usually consists of many features that are either irrelevant or redundan
 
 The reduced expression matrix, consisting of the most informative variables with respect to class, is then used to draw a ``meta-learner'' by combining different classifiers: Random Forest (RF), Na\"{i}ve Bayes (NB), 3-Nearest Neighbours (3kNN), Logistic Regression (LR), Linear Discriminant Analysis (LDA), Support Vectors Machines (SVM), Neural Networks (NN) and Partial Least Squares (PLS); this method may be referred to as a ``Stack Generalization'' or, simply, ``Stacking'' ensemble learning technique \cite{friedman2001elements}. The idea behind this method is that ``weaker'' classifiers may have different generalization performances, leading to future misclassifications; by contrast, combining and weighting the prediction of several classifiers may reduce the risk of classification errors \cite{polikar2006ensemble, wolpert1992stacked}. Moreover, the weighted voting method, used to assess the goodness of each weak classifiers, allows meta-learner to reach consistently high classification accuracies, better than or comparable with best weak classifiers \cite{rokach2010ensemble}.
 
-\section{Workflow} \label{sect2}
+\section{Data Handling} \label{sect2}
 
 \subsection{Input data} \label{data_prep}
 \damir{} expects as input two kind of data:
@@ -96,22 +97,19 @@ The reduced expression matrix, consisting of the most informative variables with
   normalization and transformation procedures of raw counts; the \href{http://www.bioconductor.org/help/workflows/rnaseqGene/}{RNA-seq workflow} in Bioconductor describes several techniques for preparing count matrices.
   Unique identifiers are needed for both genomic features and samples.
   }
-  \item{\textbf{Class and variables Information} - This file contains the information related to classes/conditions (mandatory) and
-  to known variables (optional), such as demographic or clinical data, biological context/variables and any sequencing or technical details. \textbf{The column containing the class/condition information
-  must be labelled 'class'}. In this table, each row represents a sample and each column represents a variable (class/condition and factorial and/or continuous variables).
+  \item{\textbf{Class and variables Information} - This file contains the information related to classes/conditions (mandatory) and to known variables (optional), such as demographic or clinical data, biological context/variables and any sequencing or technical details. \textbf{The column containing the class/condition information must be labelled 'class'}. In this table, each row represents a sample and each column represents a variable (class/condition and factorial and/or continuous variables).
   Rows and identifiers must correspond to columns in 'Raw Counts Data' table.
   }
   \end{itemize}
 
 In this vignette we describe the \damir{} pipeline, using as sample data a subset of Genotype-Tissue Expression (\href{http://www.gtexportal.org/static/datasets/gtex_analysis_v6/rna_seq_data/GTEx_Analysis_v6_RNA-seq_RNA-SeQCv1.1.8_gene_reads.gct.gz}{GTEx}) RNA-Seq database (dbGap Study Accession: phs000424.v6.p1) \cite{gtex2015genotype}. Briefly, GTEx project includes the mRNA sequencing data of 53 tissues from 544 \textit{postmortem} donors, using 76 bp paired-end technique on Illumina HiSeq 2000: overall, 8555 samples were analyzed.
 Here, we extracted data and some additional sample information (\textit{i.e.} sex, age, collection center and death classification based on the Hardy scale)
-for two similar brain subregions: Anterior Cingulate Cortex (Bromann Area 24) and Frontal Cortex (Brodmann Area 9). These areas are close to each other and are deemed to be involved in decision making as well as in learning. This dataset is composed of 192 samples: 84 Anterior
-Cingulate Cortex (ACC) and 108 Frontal Cortex (FC) samples for 56318 genes. \\ We, also, provide a data frame with classes and  variables included.
+for two similar brain subregions: Anterior Cingulate Cortex (Bromann Area 24) and Frontal Cortex (Brodmann Area 9). These areas are close to each other and are deemed to be involved in decision making as well as in learning. This dataset is composed of 192 samples: 84 Anterior Cingulate Cortex (ACC) and 108 Frontal Cortex (FC) samples for 56318 genes.\\
+We, also, provide a data frame with classes and  variables included.
 
 \subsection{Import Data}
 \damir{} package uses data extracted from \Biocpkg{SummarizedExperiment} class object. This object is usually employed to store either expression data produced by high-troughput technology and other information occuring with the experimental setting. The \Robject{SummarizedExperiment} object may be considered a matrix-like holder where rows and colums represent, respectively, features and samples. If data are not stored in a \Robject{SummarizedExperiment} object, the \Rfunction{DaMiRseq.makeSE} function helps the user to build a \Robject{SummarizedExperiment} object starting from expression and variable data table. The function tests if expression data are in the form of raw counts, \textit{i.e.} positive integer numbers, if 'class' variable is included in the data frame and if ``NAs'' are present in either the counts and the variables table.
-The \Rfunction{DaMiRseq.makeSE} function needs two files as input data: 1) a raw counts table and 2) a class and (if present) variable information table. In this vignette,
-we will use the dataset described in Section~\ref{data_prep} but the user could import other count and variable table files into R environment as follows:
+The \Rfunction{DaMiRseq.makeSE} function needs two files as input data: 1) a raw counts table and 2) a class and (if present) variable information table. In this vignette, we will use the dataset described in Section~\ref{data_prep} but the user could import other count and variable table files into R environment as follows:
 
 <<chu_1>>=
 library(DaMiRseq)
@@ -137,9 +135,7 @@ The \textit{``colData(SE)''} data frame, containing the variables information, i
 
 
 \subsection{Preprocessing and Normalization} \label{filt_norm}
-After importing the counts data, we ought to filter out non-expressed and/or highly variant, inconsistent genes and, then, perform normalization. Furthermore,
-the user can also decide to exclude from the dataset samples that show a low correlation among biological replicates and, thus, may be suspected to hold some technical artifact. The \Rfunction{DaMiR.normalization} function helps solving the first issues, while \Rfunction{DaMiR.sampleFilt}
-allows the removal of inconsistent samples.
+After importing the counts data, we ought to filter out non-expressed and/or highly variant, inconsistent genes and, then, perform normalization. Furthermore, the user can also decide to exclude from the dataset samples that show a low correlation among biological replicates and, thus, may be suspected to hold some technical artifact. The \Rfunction{DaMiR.normalization} function helps solving the first issues, while \Rfunction{DaMiR.sampleFilt} allows the removal of inconsistent samples.
 
   \subsubsection{Filtering by Expression} \label{filt_exp}
   Users can remove genes, setting up the minimum number of read counts permitted across samples:
@@ -148,13 +144,12 @@ allows the removal of inconsistent samples.
                                    hyper = "no")
 
   @
-  In this case, 19066 genes with read counts greater than 10 (\Rcode{minCounts = 10}) in at least 70\% of samples (\Rcode{fSample = 0.7}), have been selected, while 2297 have been filtered out. The dataset, consisting now of 19066 genes, is then normalized by the \Rfunction{varianceStabilizingTransformation} function
-  of the \Biocpkg{DESeq2} package \cite{love2014moderated}. Using \Rfunction{assay()} function, we can see that ``VST'' transformation produces data on the log2 scale normalized with respect to the library size.
+  In this case, 19066 genes with read counts greater than 10 (\Rcode{minCounts = 10}) in at least 70\% of samples (\Rcode{fSample = 0.7}), have been selected, while 2297 have been filtered out. The dataset, consisting now of 19066 genes, is then normalized by the \Rfunction{varianceStabilizingTransformation} function of the \Biocpkg{DESeq2} package \cite{love2014moderated}. Using \Rfunction{assay()} function, we can see that ``VST'' transformation produces data on the log2 scale normalized with respect to the library size.
 
   \subsubsection{Filtering By Coefficient of Variation (CV)} \label{filt_cv}
   We named ``hypervariants'' those genes that present anomalous read counts, by comparing to the mean value across the samples. We identify them by calculating distinct CV on sample sets that belong to each 'class'. Genes with all 'class' CV greater than \Rcode{th.cv} are discarded.\\
 \textbf{Note.} Computing a 'class' restricted CV may prevent the removal of features that may be specifically associated with a certain class. This could be important in some biological contexts, such as immune genes whose expression under definite conditions may unveil peculiar class-gene associations. \\
-  This time, we run again the \Rfunction{DaMiR.normalization} function by enabling the ``hypervariant'' gene detection by setting \Rcode{hyper = "yes"} and \Rcode{th.cv=3} (default):
+  Here, we run again the \Rfunction{DaMiR.normalization} function by enabling the ``hypervariant'' gene detection by setting \Rcode{hyper = "yes"} and \Rcode{th.cv=3} (default):
   <<chu_5>>=
   data_norm <- DaMiR.normalization(SE, minCounts=10, fSample=0.7,
                                    hyper = "yes", th.cv=3)
@@ -164,10 +159,7 @@ allows the removal of inconsistent samples.
   The \Rcode{th.cv = 3} allows the removal of a further 14 ``hypervariant'' genes from the gene expression data matrix. The number of genes is now reduced to 19052.
 
   \subsubsection{Normalization} \label{normal_sec}
-  After filtering, a normalization step is performed; two normalization methods are embedded in \damir{}: the \textit{Variance Stabilizing Transformation} (VST) and the
-  \textit{Regularized Log Transformation} (rlog). As described in the \Biocpkg{DESeq2} vignette, VST and rlog have similar effects on data but the VST is faster than rlog,
-  expecially when the number of samples increases; for these reasons, \Rfunction{varianceStabilizingTransformation} is the default normalization method, while
-  \Rfunction{rlog} can be, alternatively, chosen by user.
+  After filtering, a normalization step is performed; two normalization methods are embedded in \damir{}: the \textit{Variance Stabilizing Transformation} (VST) and the \textit{Regularized Log Transformation} (rlog). As described in the \Biocpkg{DESeq2} vignette, VST and rlog have similar effects on data but the VST is faster than rlog, expecially when the number of samples increases; for these reasons, \Rfunction{varianceStabilizingTransformation} is the default normalization method, while \Rfunction{rlog} can be, alternatively, chosen by user.
   <<chu_6, eval=FALSE>>=
   # Time Difference, using VST or rlog for normalization:
   #
@@ -179,12 +171,10 @@ allows the removal of inconsistent samples.
   # rlog: about 8890 seconds (i.e. 2 hours and 28 minutes!)
   @
   In this example, we run \Rfunction{DaMiR.normalization} function twice, just modifying \Rcode{type} arguments in order to test the processing time; with \Rcode{type = "vst"} (default - the same parameters used in Section~\ref{filt_cv} ) \Rfunction{DaMiR.normalization} needed 80 seconds to complete filtering and normalization, while with \Rcode{type = "rlog"} required more than 2 hours. Data were obtained on a workstation with an esa core CPU (2.40 GHz, 16 GB RAM) and 64-bit Operating System.
+\textbf{Note.} A general note on data normalization and its implications for the analysis of high-dimensional data can be found in the \textit{Chiesa et al.} Supplementary data \cite{chiesa2018damirseq}.
 
   \subsubsection{Sample Filtering} \label{samp_filt}
-  This step introduces a sample quality checkpoint. The assumption is that global gene expression should exhibit high correlation among biological replicates; conversely, low correlated
-  samples may be suspected to hold some technical artifacts (\textit{e.g.} poor RNA quality or library preparation), despite pass sequencing quality controls. If not identified and removed,
-  these samples may negatively affect the entire downstream analysis. \Rfunction{DaMiR.sampleFilt} assesses the mean absolute correlation of each sample and removes those samples with a correlation
-  lower than the value set in \Rcode{th.corr} argument. This threshold may be specific for different experimental settings but should be as high as possible.
+  This step introduces a sample quality checkpoint. The assumption is that global gene expression should exhibit high correlation among biological replicates; conversely, low correlated samples may be suspected to hold some technical artifacts (\textit{e.g.} poor RNA quality or library preparation), despite pass sequencing quality controls. If not identified and removed, these samples may negatively affect the entire downstream analysis. \Rfunction{DaMiR.sampleFilt} assesses the mean absolute correlation of each sample and removes those samples with a correlation lower than the value set in \Rcode{th.corr} argument. This threshold may be specific for different experimental settings but should be as high as possible.
   <<chu_7>>=
   data_filt <- DaMiR.sampleFilt(data_norm, th.corr=0.9)
   dim(data_filt)
@@ -198,12 +188,8 @@ After data normalization, we propose to test for the presence of surrogate varia
 
   \subsubsection{Identification of Surrogate Variables} \label{sv_id}
   Surrogate variables identification, basically, relies on the SVA algorithm by Leek et al. \cite{leek2012sva} \footnote{See \Biocpkg{sva} package}.
-  A novel method, which allows the identification of the the maximum number of sv to be used for data adjustment, has been introduced in our package.
-  Specifically, we compute eigenvalues of data and calculate the squares of each eigenvalues. The ratio
-  of each ``squared eigenvalue'' to the sum of them were then calculated. These values represent a surrogate measure of the ``Fraction of Explained Variance'' (fve) that we would
-  obtain by principal component analysis (PCA). Their cumulative sum can be, finally, used to select sv. The method to be applied can be selected in the \Rcode{method} argument of the
-  \Rfunction{DaMiR.SV} function. The option \Rcode{"fve"}, \Rcode{"be"} and \Rcode{"leek"} selects, respectively, our implementation or one of the two methods proposed
-  in the \Biocpkg{sva} package.
+  A novel method, which allows the identification of the the maximum number of sv to be used for data adjustment, has been introduced in our package. Specifically, we compute eigenvalues of data and calculate the squares of each eigenvalues. The ratio of each ``squared eigenvalue'' to the sum of them were then calculated. These values represent a surrogate measure of the ``Fraction of Explained Variance'' (fve) that we would obtain by principal component analysis (PCA). Their cumulative sum can be, finally, used to select sv. The method to be applied can be selected in the \Rcode{method} argument of the \Rfunction{DaMiR.SV} function. The option \Rcode{"fve"}, \Rcode{"be"} and \Rcode{"leek"} selects, respectively, our implementation or one of the two methods proposed in the \Biocpkg{sva} package.
+  Interested readers can find further explanations about the 'fve' and comparison with other methods in the 'Supplementary data' of \textit{Chiesa et al}. \cite{chiesa2018damirseq}.
   <<chu_8, dev="pdf">>=
    sv <- DaMiR.SV(data_filt)
   @
@@ -211,27 +197,26 @@ After data normalization, we propose to test for the presence of surrogate varia
 
   \begin{figure}[!htbp]
     \includegraphics{figure/chu_8-1}
-    \caption{Fraction of Variance Explained. This plot shows the relationship between each identified sv and the corresponding fraction of variance explained. A specific blue dot represents
-    the proportion of variance, explained by a sv together with the prior ones. The red dot marks the upper limit of sv that should be used to adjust the data. Here, 4 is the maximum number of sv obtained as it corresponds to $\le$ 95\% of variance explained.}
+    \caption{Fraction of Variance Explained. This plot shows the relationship between each identified sv and the corresponding fraction of variance explained. A specific blue dot represents the proportion of variance, explained by a sv together with the prior ones. The red dot marks the upper limit of sv that should be used to adjust the data. Here, 4 is the maximum number of sv obtained as it corresponds to $\le$ 95\% of variance explained.}
     \label{fig_fve}
   \end{figure}
   \FloatBarrier
 
 
   \subsubsection{Correlation between sv and known covariates} \label{sv_corr}
-  Once the sv have been calculated, we may inquire whether these sv capture an unwanted source of variation or may be associated with known variables that the user does not
-  wish to correct. For this purpose, we correlate the sv with the known variables stored in the ``data\_filt'' object, to decide if all of these sv or only a subset of them should be used to
-  adjust the data.
+  Once the sv have been calculated, we may inquire whether these sv capture an unwanted source of variation or may be associated with known variables that the user does not wish to correct. For this purpose, we correlate the sv with the known variables stored in the ``data\_filt'' object, to decide if all of these sv or only a subset of them should be used to adjust the data.
   <<chu_9, dev="pdf">>=
    DaMiR.corrplot(sv, colData(data_filt), sig.level = 0.01)
   @
-  The \Rfunction{DaMiR.corrplot} function produces a correlation plot where significant correlations (in the example the threshold is set to
-  \Rcode{sig.level = 0.01}) are shown within colored circles (blue or red gradient). In Figure~\ref{fig_corr}, we can see that the first three sv do not significantly correlate
-  with any of the used variables and, presumably, recovers the effect of unmeasured variables. The fourth sv presents, instead, a significant correlation with the ``center'' variable. The effect of ``center'' might be considered a batch effect and we are interested in adjusting the data for a such confounding factor.\\
-  \textbf{Note.} The correlation with ``class'' should always be non significant. In fact, the algorithm for sv identification (embedded into the \Rfunction{DaMiR.SV}
-  function) decomposes the expression variation with respect to the variable of interest (\textit{e.g.} class), that is what we want to preserve by correction \cite{leek2007capturing}.
-  Conversely, the user should consider the possibility that hidden factors may present a certain association with the 'class' variable. In this case, we suggest not to remove
-  the effect of these sv so that any overcorrection of the expression data is avoided.
+  The \Rfunction{DaMiR.corrplot} function produces a correlation plot where significant correlations (in the example the threshold is set to \Rcode{sig.level = 0.01}) are shown within colored circles (blue or red gradient). In Figure~\ref{fig_corr}, we can see that the first three sv do not significantly correlate  with any of the used variables and, presumably, recovers the effect of unmeasured variables. The fourth sv presents, instead, a significant correlation with the ``center'' variable. The effect of ``center'' might be considered a batch effect and we are interested in adjusting the data for a such confounding factor.\\
+\textbf{Note a.} The correlation with ``class'' should always be non significant. In fact, the algorithm for sv identification (embedded into the \Rfunction{DaMiR.SV} function) decomposes the expression variation with respect to the variable of interest (\textit{e.g.} class), that is what we want to preserve by correction \cite{leek2007capturing}. Conversely, the user should consider the possibility that hidden factors may present a certain association with the 'class' variable. In this case, we suggest not to remove the effect of these sv so that any overcorrection of the expression data is avoided.\\
+\textbf{Note b.} The \Rfunction{DaMiR.corrplot} function performs a standard correlation analysis between SVs and known variables. Correlation functions need to transform factors into numbers in order to work. Importantly, by default, R follows an alphabetical order to assign numbers to factors. Therefore, the correlation index will make sense when the known variables are::
+\begin{itemize}
+\item{continuous covariates, such as the "age" variable in the package's sample data}
+\item{ordinal factors, in which factors can be graded accordingly to a specific ordinal rank, for example: "1=small", "2=medium","3=large";}
+\item{dichotomous categorical variables, where the rank is not important but the maximum number of factors is 2; e.g., sex = M or F, clinical variable = YES or NO}
+\end{itemize}
+On the other hand, if a variable consists of factors with more than 2 levels and an ordinal rank can not be defined (e.g. color = "red" or "blue" or "green"), it is likely that the correlation index will give rise to a misleading interpretation, e.g. the absence of correlation even though there may be a significant association between the multi-level factor versus the surrogate variables. In this case, we warmly recommend to perform a linear regression (for example by the \Rcode{lm()} to assess the relationship between each surrogate variable and the multi-level factorial variable(s) to be evaluated. For simplicity, we assumed that, herein, we did not have the latter type of variable.
 
   \begin{figure}[!htbp]
     \includegraphics{figure/chu_9-1}
@@ -247,7 +232,7 @@ After data normalization, we propose to test for the presence of surrogate varia
   data_adjust<-DaMiR.SVadjust(data_filt, sv, n.sv=4)
   assay(data_adjust[c(1:5), c(1:5, 21:25)])
   @
-Now, 'data\_adjust' object contains a numeric matrix of log2-expression values with sv effects removed.
+Now, 'data\_adjust' object contains a numeric matrix of log2-expression values with sv effects removed. An example of the effective use of our 'fve' method has been obtained for the detection of sv in a dataset of adipose tissue samples from abdominal aortic aneurysm patients by \textit{Piacentine et al.} \cite{piacentini2019genome}.
 
 \subsection{Exploring Data}
 Quality Control (QC) is an essential part of any data analysis workflow, because it allows checking the effects of each action, such as filtering, normalization, and data cleaning.
@@ -255,11 +240,13 @@ In this context, the function \Rfunction{DaMiR.Allplot} helps identifying how di
 \begin{description}[align=left]
   \item [Heatmap] - A distance matrix, based on sample-by-sample correlation, is represented by heatmap and dendrogram using \CRANpkg{pheatmap} package. In addition to 'class', all covariates are shown, using color codes; this helps to simultaneously identify outlier samples and specific clusters, related with class or other variables;
   \item [MultiDimensional Scaling (MDS) plots] - MDS plot, drawn by \CRANpkg{ggplot2} package \cite{wickham2016ggplot2}, provides a visual representation of pattern of proximities (\textit{e.g.} similarities or distances) among a set of samples, and allows the identification of natural clusters. For the 'class' and for each variable a MDS plot is drawn.
-
   \item [Relative Log Expression (RLE) boxplot] - This plot, drawn by \Biocpkg{EDASeq} package \cite{risso2011gc}, helps to visualize the differences between the distributions across samples: medians of each RLE boxplot should be ideally centered around zero and a large shift from zero suggests that samples could have quality problems. Here, different colors means different classes.
+  \item [Sample-by-Sample expression distribution] - This plot, drawn by \CRANpkg{ggplot2} package, helps to visualize the differences between the real expression distributions across samples: shapes of every samples should be the same; indeed, samples with unusual shapes are likely outliers.
+  \item [Average expression distribution by class] - This plot, drawn by \CRANpkg{ggplot2} package, helps to visualize the differences between the average expression distribution for each class.
 \end{description}
+
 In this vignette, \Rfunction{DaMiR.Allplot} is used to appreciate the effect of data adjusting (see Section~\ref{adj_data}). First, we check how data appear just after normalization: the heatmap and RLE plot in Figure~\ref{fig_n1} (upper and lower panel, respectively) and MDS plots in Figures~\ref{fig_n3} and ~\ref{fig_n4} do not highlight the presence of specific clusters.\\
-\textbf{Note.} If a variable contains missing data (i.e. ``NA'' values), the function cannot draw the plot showing variable information. The user is, however, encouraged to impute missing data if s/he considers it meaningful to plot the covariate of interest for ``diagnosis'' purposes.
+\textbf{Note.} If a variable contains missing data (i.e. ``NA'' values), the function cannot draw the plot showing variable information. The user is, however, encouraged to impute missing data if s/he considers it meaningful to plot the covariate of interest.
   <<chu_11, dev="pdf">>=
   # After gene filtering and normalization
   DaMiR.Allplot(data_filt, colData(data_filt))
@@ -292,6 +279,17 @@ RLE (lower panel): a boxplot of the distribution of expression values computed a
   \label{fig_n4}
 \end{figure}
 \FloatBarrier
+
+% gene expression distribution
+\begin{figure}[!htbp]
+  \includegraphics{figure/chu_11-8} %sex
+  \includegraphics{figure/chu_11-9} %class
+  \caption{Gene Expression distribution. Sample-by-Sample expression distribution (upper panel) helps user to find outliers and to control the effect of normalization, filtering and adjusting steps; class average expression distribution (lower panel) highlights global expression differences between classes. }
+  \label{fig_n_ditr1}
+\end{figure}
+\FloatBarrier
+
+
 
 
 \newpage
@@ -329,14 +327,69 @@ RLE (lower panel): Relative Log Expression boxplot. A boxplot of the distributio
   \caption{MultiDimentional Scaling plot. An unsupervised MDS plot is drawn. Samples are colored according to 'sex' variable (upper panel) and 'class' (lower panel).}
   \label{fig_n8}
 \end{figure}
+\FloatBarrier
 
+% gene expression distribution
+\begin{figure}[!htbp]
+  \includegraphics{figure/chu_12-8} %sex
+  \includegraphics{figure/chu_12-9} %class
+  \caption{Gene Expression distribution. Sample-by-Sample expression distribution (upper panel) helps user to find outliers and to control the effect of normalization, filtering and adjusting steps; class average expression distribution (lower panel) highlights global expression differences between classes.}
+  \label{fig_n_ditr2}
+\end{figure}
+\FloatBarrier
 
+\subsection{Exporting output data}
+\damir{} has been designed to allow users to export the outputs of each function, which consist substantially in \Robject{matrix} or \Robject{data.frame} objects. Export can be done, using the base R functions, such as \Rfunction{write.table} or \Rfunction{write.csv}. For example, we could be interested in saving normalized data matrix, stored in ``data\_norm'' in a tab-delimited file:
+
+<<chu_export, dev="pdf", eval=FALSE>>=
+outputfile <- "DataNormalized.txt"
+write.table(data_norm, file = outputfile_norm, quote = FALSE, sep = "\t")
+@
 \FloatBarrier
 \newpage
-\subsection{Feature Selection}
-The previous step(s) returned a fully filtered, normalized, adjusted expression matrix with the effect of sv removed. However, the number of features in the dataset is still high and greatly exceeds the number of observations. We have to deal, here, with the well-known issue for high-dimensional data known as the ``curse of dimensionality''. Adding noise features that are not truly associated with the response (\textit{i.e.} class) may lead, in fact, to a worsening model accuracy. In this situation, the user needs to remove those features that bear irrelevant or redundant information. The feature selection technique implemented here does not alter the original representation of the variables, but simply selects a subset of them. It includes three different steps briefly described in the following paragraphs.
 
-\subsubsection{Variable selection in Partial Least Squares (PLS)}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Two specific supervised machine learning workflows}
+As we described in the previuos sections, RNA-Seq experiments, are used to generate hundreds to thousand of features at once. However, most of them are non informative to discriminate phenotypes and useless for further investigations.\\
+In this context, supervised machine learning is a powerful tool that gathers several algorithms, to select the most informative features in high-dimensional data and design accurate prediction models. To achieve these aims, the supervised learning algorithms need 'labeled data', where each observation of the dataset comes with \textit{a priori} knowledge of the class membership.\\
+Since version 2.0.0 of the software, \damir{} offers a solution to solve two distinct problems, in supervised learning analysis: (i) finding a small set of robust features, and (ii) building the most reliable model to predict new samples.
+
+
+\begin{itemize}
+\item{\textbf{Finding a small set of robust features to discriminate classes.} \\
+This task seeks to select and assess the reliability of a feature set from high-dimensional data. Specifically, we first implemented a 4-step feature selection strategy (orange box in Figure~\ref{sketch_DaMiR}, panel A), in order to get the most relevant features. Then, we tested the robustness of the selected features by performing a bootstrap strategy, in which an 'ensemble learner' classifier is built for each iteration (green box in Figure~\ref{sketch_DaMiR}, panel A).
+In Section~\ref{workf1}, we described this analysis in details.
+%The performance of a selected feature set are evaluated in terms of average accuracy, sensitivity, specificity, negative predictive value (NPV), positive predictive value (PPV) and the Matthew's Correlation Coefficient (MCC), through the iterations.\\
+
+}
+\item{\textbf{Building the most reliable model to predict new samples.} \\
+An important goal in machine learning is to develop a mathematical model, able to correctly associate each observation to the corresponding class. This model, also known as classification or prediction model (Figure~\ref{sketch_DaMiR}, panel B), aimed at ensuring the highest prediction accuracy with as few features as possible. \\
+First, several different models are generate by iteratively (i) splitting data in training and validation sets; (ii) performing feature selection on the training set (orange box in Figure~\ref{sketch_DaMiR}, panel B); (iii) building a classification model on the training set (pink box in Figure~\ref{sketch_DaMiR}, panel B); and, (iv) testing the classification model on the validation set (purple box in Figure~\ref{sketch_DaMiR}, panel B).
+Finally, taking into account the performance of all generated models, the most reliable one is selected (red box in Figure~\ref{sketch_DaMiR}, panel B). This model will be used for any further prediction on independent test sets (light blue box in Figure~\ref{sketch_DaMiR}, panel B). We will refer to this model as 'optimal model'. \\
+In Section~\ref{workf2}, we thoroughly described how to perform this analysis.
+}
+\end{itemize}
+
+
+\begin{figure}[!htbp]
+\includegraphics{DaMiRseq_sketch}
+\caption{
+The DaMiRseq machine learning workflows. Each elliptic box represents a specific step, where the aims and the corresponding functions are specified. In panel A, we provided the workflow to find a small set of informative features, described in Section~\ref{workf1}. In panel B, we provided the  workflow to find the best prediction model, described in Section~\ref{workf2}.
+}
+\label{sketch_DaMiR}
+\end{figure}
+\FloatBarrier
+
+\subsection{Finding a small set of informative, robust features} \label{workf1}
+This Section, where we will describe how to get a small set of robust features from an RNA-Seq dataset, is organized in two parts: in Section~\ref{damirfs}, all the feature selection steps and the corresponding functions are reported in detail; while, in Section~\ref{classif} we will focus on the classification step that we performed for assessing the robustness of the feature set. Mathematical details about the classifier implementation are also provided.
+% (i) non-informative features are excluded by the \Rfunction{DaMiR.FSelect} function; (ii) highly correlated features are removed by the \Rfunction{DaMiR.FReduct} function; (iii) \Rfunction{DaMiR.FSort} sorts features by their importance; and finally, (iv) \Rfunction{DaMiR.FBest} selects the best features.\\
+
+\subsubsection{Feature Selection} \label{damirfs}
+The steps implemented in the Section~\ref{sect2} returned a fully filtered, normalized, adjusted expression matrix with the effect of sv removed. However, the number of features in the dataset is still high and greatly exceeds the number of observations. We have to deal, here, with the well-known issue for high-dimensional data known as the ``curse of dimensionality''. Adding noise features that are not truly associated with the response (\textit{i.e.} class) may lead, in fact, to a worsening model accuracy. In this situation, the user needs to remove those features that bear irrelevant or redundant information. The feature selection technique implemented here does not alter the original representation of the variables, but simply selects a subset of them. It includes three different steps briefly described in the following paragraphs.
+
+\paragraph{Variable selection in Partial Least Squares (PLS)}
 The first step allows the user to exclude all non-informative class-related features using a backward variable elimination procedure  \cite{mehmood2012review}. The \Rfunction{DaMiR.FSelect} function embeds a principal component analysis (PCA) to identify principal components (PCs) that correlate with ``class''. The correlation coefficient is defined by the user through the \Rcode{th.corr} argument. The higher the correlation, the lower the number of PCs returned. Importantly, users should pay attention to appropriately set the \Rcode{th.corr} argument since the total number of retrieved features depends, indeed, on the number of the selected PCs. \\
 The number of class-correlated PCs is then internally used by the function to perform a backward variable elimination-PLS and remove those variables that are less informative with respect to class \cite{frank1987intermediate}.\\
 \textbf{Note.} Before running the \Rfunction{DaMiR.FSelect} function, we need to transpose our normalized expression data. It can be done by the base R function \Rfunction{t()}. However, we implemented the helper function \Rfunction{DaMiR.transpose} that transposes the data but also tries to prevent the use of tricky feature labels. The ``-'' and ``.'' characters within variable labels (commonly found, for example, in gene symbols) may, in fact, cause errors if included in the model design as it is required to execute part of the code of the \Rfunction{DaMiR.FSelect} function. Thus, we, firstly, search and, eventually, replace them with non causing error characters. \\
@@ -350,7 +403,7 @@ We used the \Rfunction{set.seed(12345)} function that allows the user to make th
  @
 The ``data\_reduced'' object returns an expression matrix with potentially informative features. In our case study, the initial number of 19052 features has been reduced to 274.
 
-\subsubsection{Removing highly correlated features}
+\paragraph{Removing highly correlated features} \label{highcorrFilt}
 Some of the returned informative features may, however, be highly correlated. To prevent the inclusion of redundant features that may decrease the model performance during the classification step, we apply a function that produces a pair-wise absolute correlation matrix. When two features present a correlation higher than \Rcode{th.corr} argument, the algorithm calculates the mean absolute correlation of each feature and, then, removes the feature with the largest mean absolute correlation.
  <<chu_14, dev="pdf">>=
  data_reduced <- DaMiR.FReduct(data_reduced$data)
@@ -365,7 +418,8 @@ MultiDimentional Scaling plot. A MDS plot is drawn, considering only most inform
 \label{fig_MDS}
 \end{figure}
 \FloatBarrier
-\subsubsection{Ranking and selecting most relevant features}
+
+\paragraph{Ranking and selecting most relevant features}
 The above functions produced a reduced matrix of variables. Nonetheless, the number of reduced variables might be too high to provide faster and cost-effective classification models. Accordingly, we should properly select a subset of the most informative features. The \Rfunction{DaMiR.FSort} function implements a procedure to rank features by their importance. The method implements a multivariate filter technique (\textit{i.e.} \textit{RReliefF}) that assessess the relevance of features (for details see the \Rfunction{relief} function of the \Biocpkg{FSelector} package) \cite{kononenko1994estimating, robnik1997adaptation}. The function produced a data frame with two columns, which reports features ranked by importance scores: a \textit{RReliefF} score and \textit{scaled.RReliefF} value; the latter is computed in this package to implement a ``z-score'' standardization procedure on \textit{RReliefF} values.\\
 \textbf{Note.} This step may be time-consuming if a data matrix with a high number of features is used as input. We observed, in fact, that there is a quadratic relationship between execution time of the algorithm and the number of features. The user is advised with a message about the estimated time needed to compute the score and rank the features. Thus, we strongly suggest to filter out non informative features by the \Rfunction{DaMiR.FSelect} and \Rfunction{DaMiR.FReduct} functions before performing this step.
 <<chu_15, dev="pdf">>=
@@ -385,7 +439,7 @@ The function \Rfunction{DaMiR.FBest} is used to select a small subset of predict
   @
 Here, we selected the first 5 genes (default) ranked by importance. \\
 \textbf{Note.} The user may also wish to select ``automatically'' (\textit{i.e.} not defined by the user) the number of important genes. This is possible by setting \Rcode{autoselect="yes"} and a threshold for the \textit{scaled.RReliefF}, \textit{i.e.} \Rcode{th.zscore} argument.
-These normalized values (rescaled to have a mean of 0 and standard deviation of 1) make it possible to compare predictors ranking obtained by running the pipeline with different parameters.
+These normalized values (rescaled to have a mean of 0 and standard deviation of 1) make it possible to compare predictors ranking obtained by running the pipeline with different parameters. Further information about the 'feature selection' step and comparison with other methods can be found in the Supplementary Article Data by \textit{Chiesa et al.} \cite{chiesa2018damirseq} with an example code. In adition, an example of the effective use of our feature selection process has been obtained for the detection of P. aeruginosa transcriptional signature of Human Infection in \textit{Cornforth et al.} \cite{cornforth2018pseudomonas}.
 
 \begin{figure}[!htbp]
 \includegraphics{figure/chu_15-1}
@@ -405,8 +459,8 @@ Clustergram. The clustergram is generated by using the expression values of the 
 \FloatBarrier
 
 
-\subsection{Classification}
-All the steps executed so far allowed the normalization, cleaning and reduction of the original expression matrix; the objective is to capture a subset of original data as informative as possible, in order to carry out a classification analysis. In this paragraph, we describe the statistical learning strategy we implemented to tackle both binary and multi-class classification problems.\\
+\subsubsection{Classification} \label{classif}
+All the steps executed so far allowed the reduction of the original expression matrix; the objective is to capture a subset of original data as informative as possible, in order to carry out a classification analysis. In this paragraph, we describe the statistical learning strategy we implemented to tackle both binary and multi-class classification problems.\\
 A meta-learner is built, combining up to 8 different classifiers through a ``Stacking'' strategy. Currently, there is no gold standard for creating the best rule to combine predictions \cite{polikar2006ensemble}. We decided to implement a framework that relies on the ``weighted majority voting'' approach \cite{LITTLESTONE1994212}. In particular, our method estimates a weight for each used classifier, based on its own accuracy, and then use these weights, together with predictions, to fine-tune a decision rule (\textit{i.e.} meta-learner). Briefly, first a training set (TR1) and a test set (TS1) are generated by ``Bootstrap'' sampling. Then, sampling again from subset TR1, another pair of training (TR2) and test set (TS2) were obtained. TR2 is used to train RF, NB, SVM, 3kNN, LDA, NN, PLS and/or LR classifiers (the number and the type are chosen by the user), whereas TS2 is used to test their accuracy and to calculate weights ($w$) by formula:
 
 \begin{equation}\label{ens_weight1}
@@ -428,8 +482,10 @@ The performance of the meta-learner (labelled as ``Ensemble'') is evaluated by u
 
 $Pr_{(k, Ensemble)}$ ranges from 0 to 1. For binary classification analysis, 0 means high probability to belong to one class, while 1 means high probability to belong to the other class); predictions close to 0.5 have to be considered as made by chance. For multi-class analysis 1 means right prediction, while 0 means wrong prediction. This process is repeated several times to assess the robustness of the set of predictors used.\\
 
-This procedure is implemented in the \Rfunction{DaMiR.EnsembleLearning} function, where \Rcode{fSample.tr}, \Rcode{fSample.tr.w} and \Rcode{iter} arguments allow the algorithm tuning.\\
-To speed up the execution time of the function, we set \Rcode{iter = 30} (default is 100) but we suggest to use an higher number of iterations to obtain more accurate results.
+The above mentioned procedure is implemented in the \Rfunction{DaMiR.EnsembleLearning} function, where \Rcode{fSample.tr}, \Rcode{fSample.tr.w} and \Rcode{iter} arguments allow the algorithm tuning.\\
+This function performs a Bootstrap resampling strategy with \Rcode{iter} iterations, in which several meta-classifiers are built and tested, by generating \Rcode{iter} training sets and \Rcode{iter} test sets in a random way. Then each classification metrics (acc,sen) is calculated on the \Rcode{iter} test sets. Finally, the average performance (and standard deviation) is provided (text and violin plots).\\
+To speed up the execution time of the function, we set \Rcode{iter = 30} (default is 100) but we suggest to use an higher number of iterations to obtain more accurate results. The function returns a list containing the matrix of accuracies of each classifier in each iteration and, in the case of a binary classification problem, the specificity, the sensitivity, PPV, NPV and the Matthew's Correlation Coefficient (MCC). These objects can be accessed using the \$ accessor.\\
+
 
 <<chu_17, dev="pdf">>=
 
@@ -437,7 +493,6 @@ To speed up the execution time of the function, we set \Rcode{iter = 30} (defaul
                           classes=df$class, fSample.tr = 0.5,
                           fSample.tr.w = 0.5, iter = 30)
 @
-The function returns a list containing the matrix of accuracies of each classifier in each iteration and, in the case of a binary classification problem, the specificity, the sensitivity and the Matthew's Correlation Coefficient (MCC). These objects can be accessed using the \$ accessor.
 
 \begin{figure}[!htbp]
 \includegraphics{figure/chu_17-1}
@@ -447,49 +502,185 @@ Accuracies Comparison. The violin plot highlights the classification accuracy of
 \label{fig_n10}
 \end{figure}
 \FloatBarrier
-%
-% \begin{figure}[!htbp]
-% \includegraphics{figure/chu_17-2}
-% \caption{
-% Matthew Correlation Coefficient Comparison (MCC). The violin plot highlights the MCC of each classifier, computed at each iteration; a black dot represents a specific accuracy value while the shape of each ``violin'' is drawn by a Gaussian kernel density estimation. Averaged accuracies and standard deviations are represented by white dots and lines.
-% }
-% \label{fig_n10_2}
-% \end{figure}
-% \FloatBarrier
-%
-% \begin{figure}[!htbp]
-% \includegraphics{figure/chu_17-3}
-% \caption{
-% Specificity Comparison. The violin plot highlights the specificity of each classifier, computed at each iteration; a black dot represents a specific accuracy value while the shape of each ``violin'' is drawn by a Gaussian kernel density estimation. Averaged accuracies and standard deviations are represented by white dots and lines.
-% }
-% \label{fig_n10_3}
-% \end{figure}
-% \FloatBarrier
-%
-% \begin{figure}[!htbp]
-% \includegraphics{figure/chu_17-4}
-% \caption{
-% Sensitivity Comparison. The violin plot highlights the sensitivity of each classifier, computed at each iteration; a black dot represents a specific accuracy value while the shape of each ``violin'' is drawn by a Gaussian kernel density estimation. Averaged accuracies and standard deviations are represented by white dots and lines.
-% }
-% \label{fig_n10_4}
-% \end{figure}
-% \FloatBarrier
-
 As shown in Figure~\ref{fig_n10} almost all single, weak classifiers show high or very high classification performancies, in terms of accuracy, specificity, sensitivity and MCC.\\
-% \textbf{Accuracy}  - RF: $99.67 \pm 1.3$, SVM: $99 \pm 2$, NB: $96.5 \pm 4.6$, LDA: $94.67 \pm 9.9$, LR: $99.33 \pm 1.7$, 3kNN: $96.83 \pm 4.4$. \\
-% \textbf{MCC}  - RF: $99.33 \pm 2.5$, SVM: $98 \pm 4.1$, NB: $93.3 \pm 8.6$, LDA: $89.47 \pm 19.5$, LR: $98.67 \pm 3.5$, 3kNN: $93.97 \pm 8.3$.\\
-% \textbf{Specificity}  - RF: $99.67 \pm 1.8$, SVM: $98.67 \pm 3.5$, NB: $98.67 \pm 4.3$, LDA: $93.67 \pm 14.5$, LR: $99 \pm 3.1$, 3kNN: $96 \pm 6.7$.\\
-% \textbf{Sensitivity}  - RF: $99.67 \pm 1.8$, SVM: $99.33 \pm 2.5$, NB: $94.33 \pm 8.2$, LDA: $95.67 \pm 7.3$, LR: $99.67 \pm 1.8$, 3kNN: $97.67 \pm 6.3$.\\
-% As discussed in Section~\ref{intro}, the meta-learner is more influenced by better weak classifiers than inferior ones, which ensures ``Ensemble'' to reach a classification accuracy equal to $99.5 \pm 1.5$, a MCC equal to $99 \pm 3.1$, a Specificity equal to $99.67 \pm 1.8$, and a Sensitivity equal to $99.33 \pm 2.5$.
 
-\subsection{Exporting output data}
-\damir{} has been designed to allow users to export the outputs of each function, which consist substantially in \Robject{matrix} or \Robject{data.frame} objects. Export can be done, using the base R functions, such as \Rfunction{write.table} or \Rfunction{write.csv}. For example, we could be interested in saving normalized data matrix, stored in ``data\_norm'' in a tab-delimited file:
+Figure~\ref{fig_n10} highlights that the five selected features ensured high and reproducible performance, whatever the classifier; indeed, the average accuracy wass always greater than 90\% and pperformance deviated by no more than 4\% from the mean value.
 
-<<chu_export, dev="pdf", eval=FALSE>>=
-outputfile <- "DataNormalized.txt"
-write.table(data_norm, file = outputfile_norm, quote = FALSE, sep = "\t")
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Building the optimal prediction model} \label{workf2}
+
+In this section, we present the workflow to generate an effective classification model that can be later used to predict the class membership of new samples. Basically, \damir{} implements a supervised learning procedure, depicted in Figure~\ref{sketch_DaMiR}, panel B, where each step is performed by a specific function.\\
+Indeed, the \Rfunction{DaMiR.EnsL\_Train} and the \Rfunction{DaMiR.EnsL\_Test} functions allow training and testing one single model at once, respectively.\\
+The \Rfunction{DaMiR.ModelSelect} function implements six strategies to perform the model selection, taking into account a particular classification metrics (e.g., Accuracy) along with the number of predictors. The idea behind this function is to search for the most reliable model rather than the best ever; this should help to avoid over-fitted training data, leading to poor performance in further predictions.\\
+Users can choose a specific strategy, combining one of the three value of the \Rcode{type.sel} argument (\Rcode{type.sel = c("mode", "median", "greater")} and one of the two values of the \Rcode{npred.sel} argument (\Rcode{npred.sel = c("min", "rnd")}.
+Let us assume we generated $N$ different model during a resampling strategy, each one characterized by a certain accuracy and number of selected features. Then, the combination of:
+
+\begin{itemize}
+  \item{\Rcode{type.sel = "mode"} and \Rcode{npred.sel = "min"}, will select the model with minimum number of features, among those with the accuracy equal to the mode (\textit{i.e.}, the most frequent value) of all $N$ accuracies;}
+
+  \item{\Rcode{type.sel = "mode"} and \Rcode{npred.sel = "rnd"}, will select randomly one model, among those with the accuracy equal to the mode (\textit{i.e.}, the most frequent value) of all $N$ accuracies;}
+
+  \item{\Rcode{type.sel = "median"} and \Rcode{npred.sel = "min"}, will select the model with minimum number of features, among those with the accuracy equal to the median of all $N$ accuracies;}
+
+  \item{\Rcode{type.sel = "median"} and \Rcode{npred.sel = "rnd"}, will select randomly one model, among those with the accuracy equal to the median of all $N$ accuracies;}
+
+  \item{\Rcode{type.sel = "greater"} and \Rcode{npred.sel = "min"}, will select the model with minimum number of features, among those with the accuracy greater than a fixed value, specified by \Rcode{th.sel};}
+
+  \item{\Rcode{type.sel = "greater"} and \Rcode{npred.sel = "rnd"}, will select randomly one model, among those with the accuracy greater than a fixed value, specified by \Rcode{th.sel};}
+
+\end{itemize}
+
+
+
+Finally, the \Rfunction{DaMiR.EnsL\_Predict} function allows performing the class prediction of new samples.\\
+\textbf{Note.} Currently, \Rfunction{DaMiR.EnsL\_Train}, \Rfunction{DaMiR.EnsL\_Test} and \Rfunction{DaMiR.EnsL\_Predict} work only on binary classification problems.
+
+
+\subsubsection{Training and testing inside the cross-validation} \label{trtscv}
+In order to simulate a typical genome-wide setting, we performed this analysis on the \Rcode{data\_adjust} dataset, which is composed of 40 samples (20 ACC and 20 FC) and 19343 features. \\
+First, we randomly selected 5 ACC and 5 FC samples (\Rcode{Test\_set}), which will be later used for the final prediction step. The remaining samples composed the case study dataset (\Rcode{Learning\_set}).
+
+
+<<chu_17bis1, dev="pdf">>=
+# Dataset for prediction
+set.seed(10101)
+nSampl_cl1 <- 5
+nSampl_cl2 <- 5
+
+## May create unbalanced Learning and Test sets
+# idx_test <- sample(1:ncol(data_adjust), 10)
+
+# Create balanced Learning and Test sets
+idx_test_cl1<-sample(1:(ncol(data_adjust)/2), nSampl_cl1)
+idx_test_cl2<-sample(1:(ncol(data_adjust)/2), nSampl_cl2) + ncol(data_adjust)/2
+idx_test <- c(idx_test_cl1, idx_test_cl2)
+
+Test_set <- data_adjust[, idx_test, drop=FALSE]
+Learning_set <- data_adjust[, -idx_test, drop=FALSE]
+
 @
 
+Then, we implemented a 3-fold Cross Validation, as resampling strategy. Please, note that this choice is an unsuitable setting in every real machine learning analysis; therefore, we strongly recommend to adopt more effective resampling strategies, as bootstrap632 or 10-fold cross validation, to obtain more accurate results.\\
+
+
+<<chu_17bis12, dev="pdf">>=
+
+# Training and Test into a 'nfold' Cross Validation
+nfold <- 3
+cv_sample <- c(rep(seq_len(nfold), each=ncol(Learning_set)/(2*nfold)),
+               rep(seq_len(nfold), each=ncol(Learning_set)/(2*nfold)))
+
+# Variables initialization
+cv_models <- list()
+cv_predictors <- list()
+res_df <- data.frame(matrix(nrow = nfold, ncol = 7))
+colnames(res_df) <- c("Accuracy",
+                      "N.predictors",
+                      "MCC",
+                      "sensitivity",
+                      "Specificty",
+                      "PPV",
+                      "NPV")
+@
+
+For each iteration, we (i) split the dataset in training (\Rcode{TR\_set}) and validation set (\Rcode{Val\_set}); (ii) performed the features selection and built the model (\Rcode{ensl\_model}) on the training set; and, (iii) tested and evaluated the model on the validation set (\Rcode{res\_Val}).
+Regarding the feature selection, we used the \damir{} procedure, described in Section~\ref{damirfs}; however, any other feature selection strategies can be jointly utilized, such as the \Biocpkg{GARS} package.
+
+<<chu_17bis2, dev="pdf", results="hide" >>=
+for (cv_fold in seq_len(nfold)){
+
+  # Create Training and Validation Sets
+  idx_cv <- which(cv_sample != cv_fold)
+  TR_set <- Learning_set[,idx_cv, drop=FALSE]
+  Val_set <- Learning_set[,-idx_cv, drop=FALSE]
+
+  #### Feature selection
+  data_reduced <- DaMiR.FSelect(t(assay(TR_set)),
+                                as.data.frame(colData(TR_set)),
+                                th.corr=0.4)
+  data_reduced <- DaMiR.FReduct(data_reduced$data,th.corr = 0.9)
+  df_importance <- DaMiR.FSort(data_reduced,
+                               as.data.frame(colData(TR_set)))
+  selected_features <- DaMiR.FBest(data_reduced,
+                                   ranking=df_importance,
+                                   autoselect = "yes")
+  # update datasets
+  TR_set <- TR_set[selected_features$predictors,, drop=FALSE]
+  Val_set <- Val_set[selected_features$predictors,drop=FALSE]
+
+  ### Model building
+  ensl_model <- DaMiR.EnsL_Train(TR_set,
+                                 cl_type = c("RF", "LR"))
+  # Store all trained models
+  cv_models[[cv_fold]] <- ensl_model
+
+  ### Model testing
+  res_Val <- DaMiR.EnsL_Test(Val_set,
+                             EnsL_model = ensl_model)
+
+  # Store all ML results
+  res_df[cv_fold,1] <- res_Val$accuracy[1] # Accuracy
+  res_df[cv_fold,2] <- length(res_Val$predictors) # N. of predictors
+  res_df[cv_fold,3] <- res_Val$MCC[1]
+  res_df[cv_fold,4] <- res_Val$sensitivity[1]
+  res_df[cv_fold,5] <- res_Val$Specificty[1]
+  res_df[cv_fold,6] <- res_Val$PPV[1]
+  res_df[cv_fold,7] <- res_Val$NPV[1]
+
+  cv_predictors[[cv_fold]] <- res_Val$predictors
+}
+
+@
+
+
+\subsubsection{Selection and Prediction} \label{selpred}
+
+Finally, we searched for the 'optimal model' to be used for predicting new samples. In this simulation, we set \Rcode{type.sel = "mode"} and \Rcode{npred.sel = "min"} to select the model with the lowest number of seleted features ensuring the most frequent accuracy value.
+
+<<chu_17bis3, dev="pdf">>=
+# Model Selection
+res_df[,1:5]
+
+idx_best_model <- DaMiR.ModelSelect(res_df,
+                                    type.sel = "mode",
+                                    npred.sel = "min")
+@
+
+\begin{figure}[!htbp]
+\includegraphics{figure/chu_17bis3-1}
+\caption{
+Bubble Chart. The performance of each generated model (blue circle) is reprepesented in terms of classification metrics (x-axis) and the number of predictors (y-axis). The size of circles corresponds to the number of models with a specific classification metrics and a specific number of predictors. The red cross represents the model, deemed optimal by \Rfunction{DaMiR.ModelSelect}.
+}
+\label{fig_bubble}
+\end{figure}
+\FloatBarrier
+
+
+The selected model (the red cross in Figure~\ref{fig_bubble}) reached an accuracy greater than 90\% with less than 10 predictors(out of 19183) on its validation set, enabling to predict correctly all the samples composing the independent test set.
+In addition, subsetting the \Rcode{cv\_predictors} object will return the predictors of the optimal model.
+<<chu_17bis4, dev="pdf">>=
+# Prediction on the the independent test set
+res_predict <- DaMiR.EnsL_Predict(Test_set,
+                   bestModel = cv_models[[idx_best_model]])
+
+# Predictors
+cv_predictors[[idx_best_model]]
+
+# Prediction assessment for Ensemble learning
+id_classifier <- 1 # Ensemble Learning
+table(colData(Test_set)$class, res_predict[,id_classifier])
+
+# Prediction assessment for Logistic regression
+id_classifier <- 3 # Logistic regression
+table(colData(Test_set)$class, res_predict[,id_classifier])
+
+@
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Adjusting the data: a necessary step?} \label{no_SV_corr}
 In this section, we highlight how the early step of data correction could impact on the final classification results. Data transformation and global scaling approaches are traditionally applied to expression data but they could not be always effective to capture unwanted source of variation. High-dimensional data are, in fact, known to be deeply influenced by noises and biases of high-throughput experiments. For this reason, we strongly suggest to check the presence of any confounding factor and assess their possible effect since they could dramatically alter the result.
@@ -526,12 +717,6 @@ Classification_res_2 <- DaMiR.EnsembleLearning(selected_features_2$data,
 The consequence of data adjustment is already remarkable after the feature selection and reduction steps. The number of selected genes, indeed, decreased from 220 to 98 when data adjustment was not performed, suggesting that hidden factors may influence gene expression and likely mask class-related features. Furthermore, the ranking of the important features also differs if data correction is not applied. The two sets of 5 genes that are used to build the classification models shares, in fact, only 1 gene. This suggests that data adjustment affects both the number and the quality of the features that can be selected for classification. Therefore, the overall classification performances, without the appropriate data correction, felt down around 90\% of accuracy for all the classifiers.
 
 Figure~\ref{fig_n11} shows the results of the variation to standard workflow of \damir{}, proposed in this Section. Taking as reference the ``Standard Workflow'', described in Section~\ref{sect2}, we can observe that the performances significantly decrease.\\
-% \textbf{Accuracy} - RF: $92.33 \pm 5.5$, SVM: $95.5 \pm 3.3$, NB: $95.67 \pm 4.7$, LDA: $88.17 \pm 7$, LR: $95.33 \pm 3.9$, 3kNN: $93.17 \pm 6.9$.\\
-% \textbf{MCC}- RF: $85.13 \pm 10.5$, SVM: $91.27 \pm 6.2$, NB: $91.7 \pm 8.6$, LDA: $77.47 \pm 13.5$, LR: $90.8 \pm 7.7$, 3kNN: $86.83 \pm 13.2$.\\
-% \textbf{Specificity} - RF: $91.67 \pm 8.7$, SVM: $97 \pm 6$, NB: $94.33 \pm 9$, LDA: $87.67 \pm 11.7$, LR: $95.33 \pm 5.1$, 3kNN: $93 \pm 9.5$.\\
-% \textbf{Sensitivity} - RF: $93 \pm 8.4$, SVM: $94 \pm 6.2$, NB: $97 \pm 5.3$, LDA: $88.67 \pm 12$, LR: $95.33 \pm 6.3$, 3kNN: $93.33 \pm 9.9$.\\
-% These results affect obviously the performances of ``Ensemble'' meta-learner that reaches a classification accuracy equal to $95.67 \pm 3.1$, a MCC equal to $91.4 \pm 6.2$, a Specificity equal to $96.67 \pm 5.5$, and a Sensitivity equal to $94.67 \pm 5.1$.
-
 
 \begin{figure}[!htbp]
 \includegraphics{figure/chu_18-2} % no SV
@@ -542,50 +727,38 @@ Figure~\ref{fig_n11} shows the results of the variation to standard workflow of 
 
 \section{Check new implementations!}
 
+% vers 2.0.0
+\subsection{Version 2.0.0, devel: 1.99.0}
+
+
+Since version 2.0.0 of the software, \damir{} offers a solution to solve two distinct problems, in supervised learning analysis: (i) finding a small set of robust features, and (ii) building the most reliable model to predict new samples
+
+Relevant modifications:
+ \begin{itemize}
+   \item{Since version 2.0.0 of the software, \damir{} offers a solution to solve two distinct problems, in supervised learning analysis: (i) finding a small set of robust features, and (ii) building the most reliable model to predict new samples;}
+   \item{The functions \Rfunction{DaMiR.EnsembleLearning2cl\_Training}, \Rfunction{EnsembleLearning2cl\_Test} and \Rfunction{EnsembleLearning2cl\_Predict} were deprecated and replaced by \Rfunction{DaMiR.EnsL\_Train}, \Rfunction{DaMiR.EnsL\_Test} and \Rfunction{DaMiR.EnsL\_Predict}, respectively;}
+   \item{We have created a new function \Rfunction{DaMiR.ModelSelect} to select the best model in a machine learning analysis;}
+      \item{Two types of expression value distribution plot were added to the \Rfunction{DaMiR.Allplot} function.}
+  \end{itemize}
+
+Minor modifications and bugs fixed:
+\begin{itemize}
+   \item{Now, the \Rfunction{DaMiR.FSelect} function properly handles multi factorial experimental settings;}
+   \item{The \Rfunction{DaMiR.FBest} function cannot select less than 2 predictors, whatever the mode;}
+   \item{The axes labels in the RLE plot (\Rfunction{DaMiR.Allplot} function) are better oriented.}
+  \end{itemize}
+
 % vers 1.6
 \subsection{Version 1.6, devel: 1.5.2}
+
 Relevant modifications:
  \begin{itemize}
    \item{The \Rfunction{DaMiR.normalization} embeds also the 'logcpm' normalization, implemented in the \Biocpkg{edgeR} package.}
    \item{Now, \Rfunction{DaMiR.EnsembleLearning} calculates also the Positive Predicted Values (PPV) and the Negative Predicted Values (NPV);}
    \item{Three new functions have been implemented for the binary classification task: \Rfunction{DaMiR.EnsembleLearning2cl\_Training}, \Rfunction{DaMiR.EnsembleLearning2cl\_Test} and \Rfunction{DaMiR.EnsembleLearning2cl\_Predict}. The first one allows the user to implement the training task and to select the model with the highest accuracy or the average accuracy; the second function allows the user to test the selected classification model on a test set defined by the user; the last function allows the user to predict the class of new samples.}
-
-  \end{itemize}
-
-<<chu_ver_16, dev="pdf", eval=FALSE>>=
-
-# Training Set
-trainx <- selected_features$data[c(1:10,21:30),]
-trainy <- df$class[c(1:10,21:30)]
-
-# Test Set
-testx <- selected_features$data[c(11:15,31:35),]
-testy <- df$class[c(11:15,31:35)]
-
-# New predidictions
-predx <- selected_features$data[c(16:20,36:40),]
-predy <- df$class[c(16:20,36:40)]
-
-# Training and Validating Classifiers
-DaMiR.Ens.Tr_out <- DaMiR.EnsembleLearning2cl_Training(data = trainx,
-                                               classes = trainy,
-                                               fSample.tr.w = 0.8,
-                                               cl_type = c("RF","LR"),
-                                               type_model = "median",
-                                               iter = 100)
-
-# Testing Classifiers
-DaMiR.Ens.Ts_out <- DaMiR.EnsembleLearning2cl_Test(data = testx,
-                               classes = testy,
-                               models_List =  DaMiR.Ens.Tr_out)
-# New predictions
-DaMiR.Ens.Pred <- DaMiR.EnsembleLearning2cl_Predict(data = predx,
-                               models_List =  DaMiR.Ens.Tr_out)
-
-@
+ \end{itemize}
 
 Minor modifications and bugs fixed:
-
 \begin{itemize}
    \item{Removed black dots in the violin plots.}
   \end{itemize}

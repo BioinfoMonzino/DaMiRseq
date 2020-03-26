@@ -4,7 +4,8 @@
 \alias{DaMiR.corrplot}
 \title{Correlation Plot}
 \usage{
-DaMiR.corrplot(sv, df, type = c("pearson", "spearman"), sig.level = 1e-04)
+DaMiR.corrplot(sv, df, type = c("pearson", "spearman"),
+  sig.level = 1e-04)
 }
 \arguments{
 \item{sv}{The matrix of sv identified by \code{\link{DaMiR.SV}}

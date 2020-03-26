@@ -2,10 +2,19 @@
 samples_num <- 30
 genes_num <- 50
 
-data_norm_test <- matrix(log2(rnbinom(genes_num*samples_num,
-                                      mu=150,
-                                      size=2)),
-                         ncol=samples_num)
+data_norm_test_1 <- matrix(log2(rnbinom(genes_num*(samples_num/2),
+                                        mu=1500,
+                                        size=2)),
+                           ncol=samples_num/2)
+
+data_norm_test_2 <- matrix(log2(rnbinom(genes_num*(samples_num/2),
+                                        mu=20,
+                                        size=2)),
+                           ncol=samples_num/2)
+
+
+data_norm_test <- cbind(data_norm_test_1,data_norm_test_2)
+
 rownames(data_norm_test)<- paste0("gene", 1:genes_num)
 data_norm_test[is.infinite(data_norm_test)] <- 5
 

@@ -1,19 +1,20 @@
 #' @title Predict new samples class
 #'
-#' @description The models learned by the
-#' \link{DaMiR.EnsembleLearning2cl_Training} functionn are applied to
-#'  a dataset, in order to predict the samples class
+#' @description The best model learned by the
+#' \link{DaMiR.EnsL_Train} functionn is tested on
+#'  a new dataset, in order to predict the samples class
 #'
-#' @param data A data frame of normalized expression data.
-#' Rows and Cols should be, respectively, observations and features
-#' @param models_List A list with the models trained by
-#' \link{DaMiR.EnsembleLearning2cl_Training} function.
+#' @param data A SummarizedExperiment object or a data frame/matrix
+#' of normalized expression data. Rows and Cols should be
+#' observations and features, respectively.
+#' @param bestModel The best model, selected between those trained by
+#' the \link{DaMiR.EnsL_Train} function.
 #'
-#' @return A dataframe containing the predictions
+#' @return A matrix containing the predictions
 #'
 #' @details
-#' This function implements the test step of
-#' \link{DaMiR.EnsembleLearning2cl} function
+#' This function implements the prediction step on new data,
+#' given a model learned by \link{DaMiR.EnsL_Train}
 #'
 #' @author Mattia Chiesa, Luca Piacentini
 #'
@@ -21,32 +22,36 @@
 #' # use example data:
 #' data(selected_features)
 #' data(df)
-#' set.seed(1)
-#' # only for the example:
-#' # speed up the process setting a low 'iter' argument value;
-#' # for real data set use default 'iter' value (i.e. 100) or higher:
-#' #  Tr_res <- DaMiR.EnsembleLearning2cl_Training(
-#' #  selected_features,classes=df$class, fSample.tr.w=0.6, iter=3,
-#' # cl_type=c("RF","LR"))
-#' # DaMiR.EnsembleLearning2cl_Predict(selected_features, Tr_res)
 #'
 #' @export
 #'
 #'
-DaMiR.EnsembleLearning2cl_Predict <- function(data,
-                                              models_List){
+DaMiR.EnsL_Predict <- function(data,
+                               bestModel){
   # check missing arguments
   if (missing(data))
     stop("'data' argument must be provided")
-  if (missing(models_List))
-    stop("'models_List' argument must be provided")
+  if (missing(bestModel))
+    stop("'bestModel' argument must be provided")
+
 
   # check the type of argument
-  if(!(is.data.frame(data)))
-    stop("'data' must be a data frame")
+  if (!(
+    is(data, "SummarizedExperiment") | is.data.frame(data) | is.matrix(data))
+  )
+    stop("'data' must be a 'data.frame', a 'matrix'
+         or a 'SummarizedExperiment' object")
 
-  if(!(is.list(models_List)))
-    stop("'models_List' must be a list")
+  if (is(data, "SummarizedExperiment")){
+    data <- t(assay(data))
+
+  }
+
+  data <- as.data.frame(data)
+
+
+  if(!(is.list(bestModel)))
+    stop("'bestModel' must be a list")
 
   # specific checks
 
@@ -60,7 +65,7 @@ DaMiR.EnsembleLearning2cl_Predict <- function(data,
 
   ## body
 
-  if (!(all(names(models_List) %in% c("RF",
+  if (!(all(names(bestModel) %in% c("RF",
                                       "SVM",
                                       "LDA",
                                       "LR",
@@ -68,44 +73,47 @@ DaMiR.EnsembleLearning2cl_Predict <- function(data,
                                       "NN",
                                       "PLS",
                                       "Ensemble",
-                                      "classes"))))
-    stop("'names(models_List)' must be
-         'RF','SVM','LDA','LR','NB','NN','PLS','Ensemble' or 'classes'")
+                                      "classes",
+                                      "positiveClass"))))
+    stop("'names(bestModel)' must be
+         'RF','SVM','LDA','LR','NB','NN','PLS','Ensemble',
+         'classes' or 'positiveClass'")
 
 
   # check nomi variabili modelli = nomi colonne testset
-  var_model <- attr(models_List[[1]][[1]][["terms"]],"term.labels")
+  var_model <- attr(bestModel[[1]][[1]][["terms"]],"term.labels")
   var_testset <- colnames(data)
   if(!(all(var_model %in% var_testset)))
-    stop(" 'data' and 'models_List' must have the same features")
+    stop(" 'data' and 'bestModel' must have the same features.
+         Please, remove irrelevant features from 'data'")
 
   # start test
   tPred <- matrix(nrow = dim(data)[1],
-                  ncol = (length(models_List)-1))
-  colnames(tPred) <- names(models_List)[-length(names(models_List))]
+                  ncol = (length(bestModel)-2))
+  colnames(tPred) <- names(bestModel)[1:ncol(tPred)]
 
   for (ii in seq_len(dim(data)[1])){
 
     if (any(colnames(tPred) %in% "RF")){
-      tPred[ii,which(colnames(tPred) %in% "RF")] <- unlist(predict(models_List[["RF"]],data[ii,]))
+      tPred[ii,which(colnames(tPred) %in% "RF")] <- unlist(predict(bestModel[["RF"]],data[ii,]))
     }
     if (any(colnames(tPred) %in% "SVM")){
-      tPred[ii,which(colnames(tPred) %in% "SVM")] <- unlist(predict(models_List[["SVM"]],data[ii,]))
+      tPred[ii,which(colnames(tPred) %in% "SVM")] <- unlist(predict(bestModel[["SVM"]],data[ii,]))
     }
     if (any(colnames(tPred) %in% "NB")){
-      tPred[ii,which(colnames(tPred) %in% "NB")] <- unlist(predict(models_List[["NB"]],data[ii,]))
+      tPred[ii,which(colnames(tPred) %in% "NB")] <- unlist(predict(bestModel[["NB"]],data[ii,]))
     }
     if (any(colnames(tPred) %in% "LDA")){
-      tPred[ii,which(colnames(tPred) %in% "LDA")] <- unlist(predict(models_List[["LDA"]],data[ii,]))[1]
+      tPred[ii,which(colnames(tPred) %in% "LDA")] <- unlist(predict(bestModel[["LDA"]],data[ii,]))[1]
     }
     if (any(colnames(tPred) %in% "LR")){
-      tPred[ii,which(colnames(tPred) %in% "LR")] <- unlist(predict(models_List[["LR"]],data[ii,]))
+      tPred[ii,which(colnames(tPred) %in% "LR")] <- unlist(predict(bestModel[["LR"]],data[ii,]))
     }
     if (any(colnames(tPred) %in% "NN")){
-      tPred[ii,which(colnames(tPred) %in% "NN")] <- unlist(predict(models_List[["NN"]],data[ii,]))
+      tPred[ii,which(colnames(tPred) %in% "NN")] <- unlist(predict(bestModel[["NN"]],data[ii,]))
     }
     if (any(colnames(tPred) %in% "PLS")){
-      tPred[ii,which(colnames(tPred) %in% "PLS")] <- unlist(predict(models_List[["PLS"]],data[ii,]))
+      tPred[ii,which(colnames(tPred) %in% "PLS")] <- unlist(predict(bestModel[["PLS"]],data[ii,]))
     }
     # if (any(colnames(tPred) %in% "kNN")){
     #
@@ -122,7 +130,7 @@ DaMiR.EnsembleLearning2cl_Predict <- function(data,
     tPred[ii,
           which(
             colnames(tPred) %in% "Ensemble")] <- round(sum(
-              unlist(models_List[["Ensemble"]])*tPred[ii,
+              unlist(bestModel[["Ensemble"]])*tPred[ii,
                                                       seq_len(dim(
                                                         tPred)[2]-1)]))
   }
@@ -131,8 +139,8 @@ DaMiR.EnsembleLearning2cl_Predict <- function(data,
   idx_ens <- which(class_labels %in% "Ensemble")
   tPred <- tPred[,c(idx_ens,1:(idx_ens-1)),drop=FALSE]
 
-  tPred[tPred!=1] <- levels(models_List$classes)[2]
-  tPred[tPred==1] <- levels(models_List$classes)[1]
+  tPred[tPred!=1] <- levels(bestModel$classes)[2]
+  tPred[tPred==1] <- levels(bestModel$classes)[1]
 
 
   return(Predictions = tPred)

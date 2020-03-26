@@ -125,15 +125,14 @@ DaMiR.corrplot <- function(sv,
 
 #' @title Quality assessment and visualization of expression data
 #' @description This is a helper function to easily draw (1) clustering
-#'  dendrogram and
-#' heatmap of a sample-per-sample correlation matrix, (2)
-#' multidimensional scaling plots (MDS)  and (3) relative log expression
-#'  (RLE) boxplots
-#' of expression data.
+#'  dendrogram and heatmap of a sample-per-sample correlation matrix, (2)
+#' multidimensional scaling plots (MDS), (3) relative log expression
+#'  (RLE) boxplots of expression data, (4) a sample-by-sample expression
+#'  value distribution, and (5) a class average expression value
+#'  distribution
 #'
 #' @param data A SummarizedExperiment object or a matrix or a data.frame
-#'  where
-#' rows and cols should be, respectively, observations and features
+#'  where rows and cols should be, respectively, observations and features
 #' @param df A data frame with class and known variables (or a subset
 #' of them); at least one column with
 #' 'class' label must be included
@@ -146,7 +145,9 @@ DaMiR.corrplot <- function(sv,
 #' Please be sure that NAs are not present in \code{df}'s columns.
 #' Plots will not be drawn in the presence of NAs.
 #' @return
-#' A dendrogram and heatmap, MDS plot(s) and a RLE boxplot
+#' A dendrogram and heatmap, MDS plot(s), a RLE boxplot, a
+#' sample-by-sample expression value distribution, and a class
+#' average expression value distribution
 #'
 #' @author Mattia Chiesa, Luca Piacentini
 #'
@@ -228,14 +229,17 @@ DaMiR.Allplot <- function(data,
   seque <- seq(min(sampleDistMatrix),
                max(sampleDistMatrix),
                by=max(sampleDistMatrix)/100)
-
+if (ncol(df)< 30){
   pheatmap(sampleDistMatrix,
            clustering_distance_rows=mydist,
            clustering_distance_cols=mydist,
            col=colors,
            breaks = seque,
            annotation_col = df)
-
+}else{
+  warning("Too many 'df' variables provided for plotting heatmab by
+  pheatmap. Please, split 'df' in more subsets")
+}
   ################
   ## MDS plot
   mdsData <- data.frame(cmdscale(sampleDistMatrix))
@@ -273,7 +277,50 @@ DaMiR.Allplot <- function(data,
           isLog=TRUE,
           outline=FALSE,
           col=colors[df$class],
-          main="Relative Log Expression")
+          main="Relative Log Expression",
+          xaxt="n",las=1)
+  axis(1,
+       las=2,
+       at=seq_len(dim(count_data)[2]),
+       labels=colnames(count_data))
+
+  ####################
+  ## Sample by sample distribution
+  acc_dotplot <- melt(as.data.frame(count_data),
+                      measure.vars = colnames(count_data))
+  print(ggplot(acc_dotplot, aes(value,
+                          fill = variable,
+                          colours= variable)) +
+    geom_density(alpha=0.3) +
+    facet_wrap(~variable)+
+    theme(legend.position = "none") +
+    ggtitle("Sample by Sample expression value distribution")
+  )
+  ####################
+  ## Class average expression distribution
+  dataset_2 <- t(count_data)
+  livelli <- levels(df$class)
+
+  for (i in seq_len(length(livelli))){
+    dataset_tmp <- dataset_2[which(df$class %in% livelli[i] ),]
+    colmeans_tmp <- colMeans(dataset_tmp)
+    if (i == 1){
+      dataset_3 <- as.data.frame(colmeans_tmp)
+    }else{
+      dataset_3 <- cbind(dataset_3,colmeans_tmp)
+    }
+  }
+
+  colnames(dataset_3) <-livelli
+  acc_dotplot_2 <- melt(dataset_3,
+                        measure.vars = colnames(dataset_3))
+  print(ggplot(acc_dotplot_2, aes(value,
+                            fill = variable,
+                            colours= variable)) +
+    geom_density(alpha=0.3) +
+    ggtitle("Class average expression value distribution")
+  )
+
 }
 
 #' @title Plot multidimentional scaling (MDS)

@@ -14,7 +14,8 @@
 #' with
 #' 'class' label must be included
 #' @param th.corr Minimum threshold of correlation between class and
-#' PCs; default is 0.6
+#' PCs; default is 0.6. Note. If df$class has more than two levels,
+#'  this option is disable and the number of PCs is set to 3.
 #' @param type Type of correlation metric; default is "spearman"
 #' @param th.VIP Threshold for \code{bve_pls} function, to remove
 #' non-important variables; default is 3
@@ -25,27 +26,23 @@
 #' so that, only the most robust features are selected. Default is 1
 #'
 #' @details The function aims to reduce the number of features to obtain
-#' the most informative
-#' variables for classification purpose. First, PCs obtained by principal
-#'  component analysis (PCA)
-#' are correlated with "class". The correlation is defined by the user in
-#'  \code{th.corr}
-#' argument. The higher is the correlation, the lower is the number of PCs
-#'  returned.
-#' Users should pay attention to appropriately set the \code{th.corr}
-#' argument because
-#' it will also affect the total number of selected features that ultimately
-#'  depend on the number of PCs.
-#' The \code{\link{bve_pls}} function of \code{plsVarSel} package is, then,
-#'  applied.
-#' This function exploits a backward variable elimination procedure coupled
-#' to a partial least squares approach to remove those variable which are
-#' less informative with
-#' respect to class. The returned vector of variables is further reduced by
-#'  the following
+#' the most informative variables for classification purpose. First,
+#' PCs obtained by principal component analysis (PCA) are correlated
+#' with "class". The correlation threshold is defined by the user
+#' in \code{th.corr} argument. The higher is the correlation, the
+#' lower is the number of PCs returned. Importantly, if df$class has
+#' more than two levels, the number of PCs is automatically set to 3.
+#' In a binary experimental setting, users should pay attention to
+#' appropriately set the \code{th.corr} argument because it will also
+#' affect the total number of selected features that ultimately
+#' depend on the number of PCs. The \code{\link{bve_pls}} function
+#' of \code{plsVarSel} package is, then, applied.
+#' This function exploits a backward variable elimination procedure
+#' coupled to a partial least squares approach to remove those variable
+#' which are less informative with respect to class. The returned
+#' vector of variables is further reduced by the following
 #' \code{\link{DaMiR.FReduct}} function in order to obtain a subset of
-#' non correlated
-#' putative predictors.
+#' non correlated putative predictors.
 #'
 #'
 #' @return A list containing:
@@ -57,8 +54,8 @@
 #' @references Tahir Mehmood, Kristian Hovde Liland, Lars Snipen and
 #' Solve Saebo (2011).
 #' A review of variable selection methods in Partial Least Squares
-#' Regression. Chemometrics and
-#' Intelligent Laboratory Systems 118, pp. 62-69.
+#' Regression. Chemometrics and Intelligent Laboratory Systems
+#' 118, pp. 62-69.
 #'
 #' @author Mattia Chiesa, Luca Piacentini
 #'
@@ -97,6 +94,7 @@ DaMiR.FSelect <- function(data,
   if (missing(type)){
     type <- type[1]
   }
+
 
   # check the type of argument
   if(!(is.matrix(data) | is.data.frame(data)))
@@ -145,6 +143,7 @@ DaMiR.FSelect <- function(data,
   if (!(all(type %in% c("pearson", "spearman"))))
     stop("'type' must be 'pearson' or 'spearman'")
 
+
   correlation <-0
   features<-dim(data)[2]
 
@@ -154,36 +153,55 @@ DaMiR.FSelect <- function(data,
                             ncp = round(nrow(data)/2))
 
   # class vs PCs correlation
-  if(type == "spearman"){
-    class.vs.PCs<-function(x){
-      correlation <- abs(cor(x, (as.numeric(df$class)-1),
-                             method = "spearman"))
+  if(length(levels(df$class))==2){
+
+  cat("You are performing feature selection on a binary class object.", "\n")
+
+    if(type == "spearman"){
+      class.vs.PCs<-function(x){
+        correlation <- abs(cor(x, (as.numeric(df$class)-1),
+                               method = "spearman"))
+      }
+    } else if(type == "pearson"){
+      class.vs.PCs<-function(x){
+        correlation <- abs(cor(x,(as.numeric(df$class)-1)))
+      }
+    } else{
+      stop("Please set 'spearman or 'pearson' as correlation type.")
     }
-  } else if(type == "pearson"){
-    class.vs.PCs<-function(x){
-      correlation <- abs(cor(x,(as.numeric(df$class)-1)))
-    }
-  } else{
-    stop("Please set 'spearman or 'pearson' as correlation type.")
+
+    correlation<-apply(pca_plot$ind$coord, 2, class.vs.PCs)
+
+  } else if(length(levels(df$class)) > 2){
+
+    cat("You are performing feature selction on a multi-level
+	  class object (N. of factors > 2).
+	  For 'class' with more than two levels, the number of PCs
+	  used for feature selection will be equal 3 by default", "\n")
+
+    th.corr<-0
+    num_PC<-3
+
   }
-  correlation<-apply(pca_plot$ind$coord, 2, class.vs.PCs)
 
   # identify informative PCs
   if ( length(which(correlation>=th.corr)) == 0 ){
-    m_stop <- paste("There are not PCs with a correlation grater than",
+    m_stop <- paste("There are not PCs with a correlation greater than",
                     th.corr,
                     "with class. Please decrease 'th.corr'")
     stop(m_stop)
   }else{
-  num_PC <- max(which(correlation>=th.corr))
+    num_PC <- max(which(correlation>=th.corr))
   }
+
+
 
   # filter out uninformative features
   if (nPlsIter == 1){
     featureslist<-bve_pls(df$class,
-                               as.matrix(data),
-                               ncomp=num_PC,
-                               VIP.threshold=th.VIP)
+                          as.matrix(data),
+                          ncomp=num_PC,
+                          VIP.threshold=th.VIP)
     selectedCandidates <- names(data)[unlist(featureslist)]
   }else{
     for (i in seq_len(nPlsIter)){
@@ -194,13 +212,13 @@ DaMiR.FSelect <- function(data,
                               VIP.threshold=th.VIP)
         selectedCandidates <- names(data)[unlist(featureslist)]
       }else{
-       featureslist<-bve_pls(df$class,
-                      as.matrix(data),
-                      ncomp=num_PC,
-                      VIP.threshold=th.VIP)
-       selectedCandidates_iter <- names(data)[unlist(featureslist)]
-       selectedCandidates <- intersect(selectedCandidates,
-                                       selectedCandidates_iter)
+        featureslist<-bve_pls(df$class,
+                              as.matrix(data),
+                              ncomp=num_PC,
+                              VIP.threshold=th.VIP)
+        selectedCandidates_iter <- names(data)[unlist(featureslist)]
+        selectedCandidates <- intersect(selectedCandidates,
+                                        selectedCandidates_iter)
       }
     }
   }
@@ -210,12 +228,12 @@ DaMiR.FSelect <- function(data,
         th.VIP argument is too high. Please choose a lower level of th.VIP")
   } else {
 
-  cat(features-dim(data_reduced)[2],
-      "Genes have been discarded for classification",
-      dim(data_reduced)[2],
-      "Genes remained.","\n")
+    cat(features-dim(data_reduced)[2],
+        "Genes have been discarded for classification",
+        dim(data_reduced)[2],
+        "Genes remained.","\n")
 
-  return(list(data = data_reduced, variables = df))
+    return(list(data = data_reduced, variables = df))
 
   }
 }
@@ -424,7 +442,7 @@ DaMiR.FSort <- function(data, df, fSample=1){
   y <-0.0011*x^2 - 0.1822*x + 27.092
 
   cat("Please wait. This operation will take about", round(y),
-      "seconds (i.e. about",round(y/60),"minutes).")
+      "seconds (i.e. about",round(y/60),"minutes).", "\n")
 
   classes <- levels(df$class)
 
@@ -446,7 +464,7 @@ DaMiR.FSort <- function(data, df, fSample=1){
     sample_index_list <- c(sample_index_list,sample_index)
   }
   sample_index_list <- as.numeric(sample_index_list[-1])
-  
+
   # bug fixed. Thanks to Dr. Priti Prasad!
   if (length(sample_index_list) < 3 )
     stop("Few subjects have been selected for RRelieF.")
@@ -468,7 +486,7 @@ DaMiR.FSort <- function(data, df, fSample=1){
   }else{
     rel_res <- relief(formula = formula.relief, data = dataset.relief)
   }
-  
+
 
   # Importance plot
   imp_attrib <- rel_res[as.numeric(order(rel_res$attr_importance,
@@ -605,6 +623,9 @@ DaMiR.FBest <- function(data,
     if(missing(n.pred)){
     predictors <- rownames(
     ranking[ranking[,2]>th.zscore,, drop=FALSE])
+      if (length(predictors)<2){
+        predictors <- rownames(ranking[c(1,2),,drop=FALSE])
+      }
     } else {
       stop("'n.pred' must be set only with 'autoselect = no'")
     }

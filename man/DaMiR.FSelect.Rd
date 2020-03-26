@@ -18,7 +18,8 @@ with
 'class' label must be included}
 
 \item{th.corr}{Minimum threshold of correlation between class and
-PCs; default is 0.6}
+PCs; default is 0.6. Note. If df$class has more than two levels,
+ this option is disable and the number of PCs is set to 3.}
 
 \item{type}{Type of correlation metric; default is "spearman"}
 
@@ -46,27 +47,23 @@ procedure for the removal of non informative features.
 }
 \details{
 The function aims to reduce the number of features to obtain
-the most informative
-variables for classification purpose. First, PCs obtained by principal
- component analysis (PCA)
-are correlated with "class". The correlation is defined by the user in
- \code{th.corr}
-argument. The higher is the correlation, the lower is the number of PCs
- returned.
-Users should pay attention to appropriately set the \code{th.corr}
-argument because
-it will also affect the total number of selected features that ultimately
- depend on the number of PCs.
-The \code{\link{bve_pls}} function of \code{plsVarSel} package is, then,
- applied.
-This function exploits a backward variable elimination procedure coupled
-to a partial least squares approach to remove those variable which are
-less informative with
-respect to class. The returned vector of variables is further reduced by
- the following
+the most informative variables for classification purpose. First,
+PCs obtained by principal component analysis (PCA) are correlated
+with "class". The correlation threshold is defined by the user
+in \code{th.corr} argument. The higher is the correlation, the
+lower is the number of PCs returned. Importantly, if df$class has
+more than two levels, the number of PCs is automatically set to 3.
+In a binary experimental setting, users should pay attention to
+appropriately set the \code{th.corr} argument because it will also
+affect the total number of selected features that ultimately
+depend on the number of PCs. The \code{\link{bve_pls}} function
+of \code{plsVarSel} package is, then, applied.
+This function exploits a backward variable elimination procedure
+coupled to a partial least squares approach to remove those variable
+which are less informative with respect to class. The returned
+vector of variables is further reduced by the following
 \code{\link{DaMiR.FReduct}} function in order to obtain a subset of
-non correlated
-putative predictors.
+non correlated putative predictors.
 }
 \examples{
 # use example data:
@@ -85,8 +82,8 @@ th.corr = 0.7, type = "spearman", th.VIP = 1)
 Tahir Mehmood, Kristian Hovde Liland, Lars Snipen and
 Solve Saebo (2011).
 A review of variable selection methods in Partial Least Squares
-Regression. Chemometrics and
-Intelligent Laboratory Systems 118, pp. 62-69.
+Regression. Chemometrics and Intelligent Laboratory Systems
+118, pp. 62-69.
 }
 \seealso{
 \itemize{

@@ -8,8 +8,7 @@ DaMiR.Allplot(data, df, type = c("spearman", "pearson"))
 }
 \arguments{
 \item{data}{A SummarizedExperiment object or a matrix or a data.frame
- where
-rows and cols should be, respectively, observations and features}
+where rows and cols should be, respectively, observations and features}
 
 \item{df}{A data frame with class and known variables (or a subset
 of them); at least one column with
@@ -21,15 +20,17 @@ analysis. Either "spearman" or "pearson" is allowed; default is
 "spearman"}
 }
 \value{
-A dendrogram and heatmap, MDS plot(s) and a RLE boxplot
+A dendrogram and heatmap, MDS plot(s), a RLE boxplot, a
+sample-by-sample expression value distribution, and a class
+average expression value distribution
 }
 \description{
 This is a helper function to easily draw (1) clustering
- dendrogram and
-heatmap of a sample-per-sample correlation matrix, (2)
-multidimensional scaling plots (MDS)  and (3) relative log expression
- (RLE) boxplots
-of expression data.
+ dendrogram and heatmap of a sample-per-sample correlation matrix, (2)
+multidimensional scaling plots (MDS), (3) relative log expression
+ (RLE) boxplots of expression data, (4) a sample-by-sample expression
+ value distribution, and (5) a class average expression value
+ distribution
 }
 \details{
 Please be sure that NAs are not present in \code{df}'s columns.

@@ -1,3 +1,21 @@
+Version 2.0.0
+  o Since version 2.0.0 of the software, DaMiRseq offers a solution
+  to solve two distinct problems, in supervised learning analysis: 
+  (i) finding a small set of robust features, and (ii) building the 
+  most reliable model to predict new samples;
+  
+  o The functions DaMiR.EnsembleLearning2cl_Training, 
+  EnsembleLearning2cl_Test and EnsembleLearning2cl_Predict were 
+  deprecated and replaced by DaMiR.EnsL_Train, DaMiR.EnsL_Test 
+  and DaMiR.EnsL_Predict, respectively;
+  
+  o We have created a new function DaMiR.ModelSelect to select the
+  best model in a machine learning analysis;
+  
+  o Two types of expression value distribution plot were added 
+  to the DaMiR.Allplot function.
+  
+----------------
 Version 1.5.2
   o The DaMiR.normalization function embeds also the 'logcpm' 
     normalization.

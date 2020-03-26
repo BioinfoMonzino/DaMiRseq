@@ -5,9 +5,9 @@
 \title{Filter non Expressed and 'Hypervariant' features and Data
 Normalization}
 \usage{
-DaMiR.normalization(data, minCounts = 10, fSample = 0.5, hyper = c("yes",
-  "no"), th.cv = 3, type = c("vst", "rlog", "logcpm"),
-  nFitType = c("parametric", "local", "mean"))
+DaMiR.normalization(data, minCounts = 10, fSample = 0.5,
+  hyper = c("yes", "no"), th.cv = 3, type = c("vst", "rlog",
+  "logcpm"), nFitType = c("parametric", "local", "mean"))
 }
 \arguments{
 \item{data}{A \code{SummarizedExperiment} object}
