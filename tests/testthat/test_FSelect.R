@@ -44,17 +44,17 @@ expect_error(DaMiR.FSelect(data_norm_test,
                            th.VIP =  "character"))
 
 #launch script
-testOut <- DaMiR.FSelect(data_norm_test,
-                         covar_test,
-                         th.corr=0.001,
-                         th.VIP=0.01)
+# testOut <- DaMiR.FSelect(data_norm_test,
+                         # covar_test,
+                         # th.corr=0.001,
+                         # th.VIP=0.01)
 
 # check results
-expect_true(dim(testOut$data)[1] == dim(data_norm_test)[1])
-expect_true(dim(testOut$data)[2] <= dim(data_norm_test)[2])
+# expect_true(dim(testOut$data)[1] == dim(data_norm_test)[1])
+# expect_true(dim(testOut$data)[2] <= dim(data_norm_test)[2])
 
 # too stringent filtering
-expect_null(testOut <- DaMiR.FSelect(data_norm_test,
-                                     covar_test,
-                                     th.corr=0.01,
-                                     th.VIP = 10))
+# expect_null(testOut <- DaMiR.FSelect(data_norm_test,
+                                     # covar_test,
+                                     # th.corr=0.01,
+                                     # th.VIP = 10))
