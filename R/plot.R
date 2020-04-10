@@ -240,6 +240,7 @@ if (ncol(df)< 30){
   warning("Too many 'df' variables provided for plotting heatmab by
   pheatmap. Please, split 'df' in more subsets")
 }
+  #options(warn = -1)
   ################
   ## MDS plot
   mdsData <- data.frame(cmdscale(sampleDistMatrix))
@@ -262,8 +263,9 @@ if (ncol(df)< 30){
           colnames(df)[i],"\n")
     }
 
-    print(ggplot(mds, aes(X1, X2, shape=mds$class, color=cov_list$Vars)) +
-            geom_point(size=3) +
+   # print(ggplot(mds, aes(X1, X2, shape=mds$class, color=cov_list$Vars)) +
+    print(ggplot(mds, aes(X1, X2, shape=class, color=cov_list$Vars)) +
+                    geom_point(size=3) +
             geom_text(aes(label=rownames(mds)),hjust=0.5,vjust=-1) +
             ggtitle(paste("Variable: ",colnames(mds[,i+2,drop=FALSE]))))
   }
@@ -424,7 +426,8 @@ DaMiR.MDSplot <- function(data,
   # MDS plot
   mdsData <- data.frame(cmdscale(sampleDistMatrix))
   mds <- cbind(mdsData, df)
-  ggplot(mds, aes(X1, X2, shape=df$class, color=df$class)) +
+#  ggplot(mds, aes(X1, X2, shape=df$class, color=df$class)) +
+   ggplot(mds, aes(X1, X2, shape=class, color=class)) +
     geom_point(size=3) +
     geom_text(aes(label=rownames(mds)), hjust=0.5, vjust=-1)
 

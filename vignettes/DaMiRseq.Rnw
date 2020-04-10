@@ -676,8 +676,79 @@ table(colData(Test_set)$class, res_predict[,id_classifier])
 
 @
 
+\section{Normalizing and Adjusting real independent test sets}
+The main issue when dealing with prediction in a high-dimensional context is how to normalize and adjust new sample data. The problem arises because (i) normalization procedures are data dependent and (ii) factor-based algorithms to adjust data are supervised methods, i.e. we must know the variable of interest we wish to adjust for. But this is not the case of novel samples for which we are not supposed to know their class. In this latter case, however, we can apply normalization and adjustment on new data by making use of the knowledge obtained from the learning set.\\
+Hereafter, we will propose two methods, called \textbf{'Precise'} and \textbf{'Quick'}, that demonstrate to work satisfactory displaying high normalization capability, leading to good prediction accuracy on new samples. Briefly, with the 'Precise' method the dispersion function is estimated on the Learning set; while with the 'Quick' methods,dispersion and data transformation is performed directly (and more quickly) on the independent test set.\\
+To illustrate these two options, we exploited the example data of DaMiRseq package by splitting raw counts at the beginning and using the test set as it would be a completely independent data set. We encourage the user to use also other kind of data to test our proposed choices.
 
+<<chu_17ter1, dev="pdf">>=
+data(SE)
+# create Independent test set and Learning set (raw counts)
+idx_test <- c(18,19,39,40)
+Ind_Test_set <- SE[, idx_test, drop=FALSE]
+Learning_set <- SE[, -idx_test, drop=FALSE]
 
+# DaMiRseq pipeline on Learning Set
+data_norm <- DaMiR.normalization(Learning_set,
+                                 minCounts=10,
+                                 fSample=0.7,
+                                 hyper = "yes",
+                                 th.cv=3)
+sv <- DaMiR.SV(data_norm)
+data_adjust <- DaMiR.SVadjust(data_norm, sv, n.sv=4)
+
+@
+
+Then, we normalized the independent test set by the \Rcode{vst} (the same normalization used for the Learning set) and the \Rcode{precise} method. Then, we have also adjusted for batch effects taking advantage of \Rcode{data\_adjust}, the dataset previously corrected by the estimated SVs.
+
+<<chu_17ter2, dev="pdf">>=
+# remove not expressed genes from Learning_set and Ind_Test_set
+expr_LearningSet <- Learning_set[rownames(data_norm)]
+expr_Ind_Test_set <- Ind_Test_set[rownames(data_norm)]
+
+# Independent test set Normalization
+norm_ind_ts <- DaMiR.iTSnorm(expr_LearningSet,
+                             expr_Ind_Test_set,
+                             normtype = "vst",
+                             method = "precise")
+
+# Independent test set batch Adjusting
+adj_norm_ind_ts <- DaMiR.iTSadjust(data_adjust, norm_ind_ts)
+
+@
+
+In Figure~\ref{fig_indTS1} and in Figure~\ref{fig_indTS2}, the effect of normalization and batch correction, applied on the independent test set, are shown, respectively
+
+% Heatmap and RLE
+\begin{figure}[!htbp]
+\includegraphics{figure/chu_17ter2-1}
+\includegraphics{figure/chu_17ter2-2}
+\caption{RLE and Gene Expression distribution after normalization. A RLE boxplot of the distribution of expression values computed as the difference between the expression of each gene and the median expression of that gene accross all samples. Here, since all medians are very close to zero, it appears that all the samples are well-normalized and do not present any quality problems (upper panel). Sample-by-Sample expression distribution (lower panel)}
+\label{fig_indTS1}
+\end{figure}
+\FloatBarrier
+
+% Heatmap and RLE
+\begin{figure}[!htbp]
+\includegraphics{figure/chu_17ter2-3}
+\includegraphics{figure/chu_17ter2-4}
+\caption{RLE and Gene Expression distribution after batch correction. A RLE boxplot of the distribution of expression values computed as the difference between the expression of each gene and the median expression of that gene accross all samples. Here, since all medians are very close to zero, it appears that all the samples are well-normalized and do not present any quality problems (upper panel). Sample-by-Sample expression distribution (lower panel)}
+\label{fig_indTS2}
+\end{figure}
+\FloatBarrier
+
+Finally, users can predict the class of the independent test set samples and assessed the performance, by directly using the \Rfunction{DaMiR.EnsL\_Predict} function and the best model built on the Learning Set. Here, for simplicity, we used the model built on the workflow implemented in Section~ \ref{workf2}.
+
+<<chu_17ter3, dev="pdf">>=
+# Prediction on independent test set
+
+prediction <- DaMiR.EnsL_Predict(t(adj_norm_ind_ts),
+                               bestModel = cv_models[[idx_best_model]])
+prediction
+
+# confusion matrix for the Ensemble Learner
+table(Ind_Test_set@colData$class, prediction[,1])
+@
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -728,7 +799,7 @@ Figure~\ref{fig_n11} shows the results of the variation to standard workflow of 
 \section{Check new implementations!}
 
 % vers 2.0.0
-\subsection{Version 2.0.0, devel: 1.99.0}
+\subsection{Version 2.0.0, devel: 2.1.0}
 
 
 Since version 2.0.0 of the software, \damir{} offers a solution to solve two distinct problems, in supervised learning analysis: (i) finding a small set of robust features, and (ii) building the most reliable model to predict new samples
@@ -737,7 +808,8 @@ Relevant modifications:
  \begin{itemize}
    \item{Since version 2.0.0 of the software, \damir{} offers a solution to solve two distinct problems, in supervised learning analysis: (i) finding a small set of robust features, and (ii) building the most reliable model to predict new samples;}
    \item{The functions \Rfunction{DaMiR.EnsembleLearning2cl\_Training}, \Rfunction{EnsembleLearning2cl\_Test} and \Rfunction{EnsembleLearning2cl\_Predict} were deprecated and replaced by \Rfunction{DaMiR.EnsL\_Train}, \Rfunction{DaMiR.EnsL\_Test} and \Rfunction{DaMiR.EnsL\_Predict}, respectively;}
-   \item{We have created a new function \Rfunction{DaMiR.ModelSelect} to select the best model in a machine learning analysis;}
+   \item{We have created a new function (\Rfunction{DaMiR.ModelSelect}) to select the best model in a machine learning analysis;}
+      \item{We have created two new functions (\Rfunction{DaMiR.iTSnorm} and \Rfunction{DaMiR.iTSadjust}) to normalize and adjust the gene espression of independent test sets;}
       \item{Two types of expression value distribution plot were added to the \Rfunction{DaMiR.Allplot} function.}
   \end{itemize}
 
