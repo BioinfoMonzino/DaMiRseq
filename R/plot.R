@@ -177,7 +177,7 @@ DaMiR.Allplot <- function(data,
   # check the type of argument
   if(!(
     is(data, "SummarizedExperiment") | is.data.frame(data) | is.matrix(data))
-    )
+  )
     stop("'data' must be a 'matrix', a 'data.frame'
          or a 'SummarizedExperiment' object")
   if(!(is(df, "DataFrame") | is.data.frame(df)))
@@ -229,17 +229,17 @@ DaMiR.Allplot <- function(data,
   seque <- seq(min(sampleDistMatrix),
                max(sampleDistMatrix),
                by=max(sampleDistMatrix)/100)
-if (ncol(df)< 30){
-  pheatmap(sampleDistMatrix,
-           clustering_distance_rows=mydist,
-           clustering_distance_cols=mydist,
-           col=colors,
-           breaks = seque,
-           annotation_col = df)
-}else{
-  warning("Too many 'df' variables provided for plotting heatmab by
+  if (ncol(df)< 30){
+    pheatmap(sampleDistMatrix,
+             clustering_distance_rows=mydist,
+             clustering_distance_cols=mydist,
+             col=colors,
+             breaks = seque,
+             annotation_col = df)
+  }else{
+    warning("Too many 'df' variables provided for plotting heatmab by
   pheatmap. Please, split 'df' in more subsets")
-}
+  }
   #options(warn = -1)
   ################
   ## MDS plot
@@ -263,9 +263,9 @@ if (ncol(df)< 30){
           colnames(df)[i],"\n")
     }
 
-   # print(ggplot(mds, aes(X1, X2, shape=mds$class, color=cov_list$Vars)) +
+    # print(ggplot(mds, aes(X1, X2, shape=mds$class, color=cov_list$Vars)) +
     print(ggplot(mds, aes(X1, X2, shape=class, color=cov_list$Vars)) +
-                    geom_point(size=3) +
+            geom_point(size=3) +
             geom_text(aes(label=rownames(mds)),hjust=0.5,vjust=-1) +
             ggtitle(paste("Variable: ",colnames(mds[,i+2,drop=FALSE]))))
   }
@@ -291,12 +291,12 @@ if (ncol(df)< 30){
   acc_dotplot <- melt(as.data.frame(count_data),
                       measure.vars = colnames(count_data))
   print(ggplot(acc_dotplot, aes(value,
-                          fill = variable,
-                          colours= variable)) +
-    geom_density(alpha=0.3) +
-    facet_wrap(~variable)+
-    theme(legend.position = "none") +
-    ggtitle("Sample by Sample expression value distribution")
+                                fill = variable,
+                                colours= variable)) +
+          geom_density(alpha=0.3) +
+          facet_wrap(~variable)+
+          theme(legend.position = "none") +
+          ggtitle("Sample by Sample expression value distribution")
   )
   ####################
   ## Class average expression distribution
@@ -317,13 +317,14 @@ if (ncol(df)< 30){
   acc_dotplot_2 <- melt(dataset_3,
                         measure.vars = colnames(dataset_3))
   print(ggplot(acc_dotplot_2, aes(value,
-                            fill = variable,
-                            colours= variable)) +
-    geom_density(alpha=0.3) +
-    ggtitle("Class average expression value distribution")
+                                  fill = variable,
+                                  colours= variable)) +
+          geom_density(alpha=0.3) +
+          ggtitle("Class average expression value distribution")
   )
 
 }
+
 
 #' @title Plot multidimentional scaling (MDS)
 #'
