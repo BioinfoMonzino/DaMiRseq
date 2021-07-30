@@ -205,9 +205,9 @@ After data normalization, we propose to test for the presence of surrogate varia
 
   \subsubsection{Correlation between sv and known covariates} \label{sv_corr}
   Once the sv have been calculated, we may inquire whether these sv capture an unwanted source of variation or may be associated with known variables that the user does not wish to correct. For this purpose, we correlate the sv with the known variables stored in the ``data\_filt'' object, to decide if all of these sv or only a subset of them should be used to adjust the data.
-  <<chu_9, dev="pdf">>=
-   DaMiR.corrplot(sv, colData(data_filt), sig.level = 0.01)
-  @
+  % <<chu_9, dev="pdf">>=
+   % DaMiR.corrplot(sv, colData(data_filt), sig.level = 0.01)
+  % @
   The \Rfunction{DaMiR.corrplot} function produces a correlation plot where significant correlations (in the example the threshold is set to \Rcode{sig.level = 0.01}) are shown within colored circles (blue or red gradient). In Figure~\ref{fig_corr}, we can see that the first three sv do not significantly correlate  with any of the used variables and, presumably, recovers the effect of unmeasured variables. The fourth sv presents, instead, a significant correlation with the ``center'' variable. The effect of ``center'' might be considered a batch effect and we are interested in adjusting the data for a such confounding factor.\\
 \textbf{Note a.} The correlation with ``class'' should always be non significant. In fact, the algorithm for sv identification (embedded into the \Rfunction{DaMiR.SV} function) decomposes the expression variation with respect to the variable of interest (\textit{e.g.} class), that is what we want to preserve by correction \cite{leek2007capturing}. Conversely, the user should consider the possibility that hidden factors may present a certain association with the 'class' variable. In this case, we suggest not to remove the effect of these sv so that any overcorrection of the expression data is avoided.\\
 \textbf{Note b.} The \Rfunction{DaMiR.corrplot} function performs a standard correlation analysis between SVs and known variables. Correlation functions need to transform factors into numbers in order to work. Importantly, by default, R follows an alphabetical order to assign numbers to factors. Therefore, the correlation index will make sense when the known variables are::
@@ -218,12 +218,12 @@ After data normalization, we propose to test for the presence of surrogate varia
 \end{itemize}
 On the other hand, if a variable consists of factors with more than 2 levels and an ordinal rank can not be defined (e.g. color = "red" or "blue" or "green"), it is likely that the correlation index will give rise to a misleading interpretation, e.g. the absence of correlation even though there may be a significant association between the multi-level factor versus the surrogate variables. In this case, we warmly recommend to perform a linear regression (for example by the \Rcode{lm()} to assess the relationship between each surrogate variable and the multi-level factorial variable(s) to be evaluated. For simplicity, we assumed that, herein, we did not have the latter type of variable.
 
-  \begin{figure}[!htbp]
-    \includegraphics{figure/chu_9-1}
-    \caption{Correlation Plot between sv and known variables. This plot highligths the correlation between sv and known covariates, using both color gradient and circle size. The color ranges from dark red (correlation = -1) to dark blue (correlation = 1) and the circle size is maximum for a correlation equal to 1 or -1 and decreases up to zero. Black crosses help to identify non-significant correlations. This plot shows that the first to the third sv do not significantly correlate with any variable, while the fourth is significantly correlated with the ``center'' variable.}
-    \label{fig_corr}
-  \end{figure}
-  \FloatBarrier
+  % \begin{figure}[!htbp]
+    % \includegraphics{figure/chu_9-1}
+    % \caption{Correlation Plot between sv and known variables. This plot highligths the correlation between sv and known covariates, using both color gradient and circle size. The color ranges from dark red (correlation = -1) to dark blue (correlation = 1) and the circle size is maximum for a correlation equal to 1 or -1 and decreases up to zero. Black crosses help to identify non-significant correlations. This plot shows that the first to the third sv do not significantly correlate with any variable, while the fourth is significantly correlated with the ``center'' variable.}
+    % \label{fig_corr}
+  % \end{figure}
+  % \FloatBarrier
 
 
   \subsubsection{Cleaning expression data}
