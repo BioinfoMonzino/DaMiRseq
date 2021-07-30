@@ -1,11 +1,12 @@
 Package: DaMiRseq
 Type: Package
+
 Date: 2021-07-30
 Title: Data Mining for RNA-seq data: normalization,
     feature selection and classification
-Version: 2.5.2
+Version: 2.5.1
 Author: Mattia Chiesa <mattia.chiesa@cardiologicomonzino.it>, 
-    Luca Piacentini <luca.piacentini@cardiologicomonzino.it>
+Luca Piacentini <luca.piacentini@cardiologicomonzino.it>
 Maintainer: Mattia Chiesa <mattia.chiesa@cardiologicomonzino.it>
 Description: The DaMiRseq package offers a tidy pipeline of data mining
         procedures to identify transcriptional biomarkers and exploit 
