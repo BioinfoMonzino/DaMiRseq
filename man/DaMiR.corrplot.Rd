@@ -49,7 +49,7 @@ Notably, none of the sv should present signifcant correlation with
 data(df)
 data(sv)
 # Draw correlation plot:
-DaMiR.corrplot(sv=sv, df=df, type = "pearson", sig.level=0.01)
+#DaMiR.corrplot(sv=sv, df=df, type = "pearson", sig.level=0.01)
 
 }
 \seealso{

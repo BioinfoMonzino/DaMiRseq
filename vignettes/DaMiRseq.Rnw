@@ -119,7 +119,7 @@ library(DaMiRseq)
 # filecounts <- list.files(rawdata.path, full.names = TRUE)[2]
 # filecovariates <- list.files(rawdata.path, full.names = TRUE)[1]
 # count_data <- read.delim(filecounts)
-# covariate_data <- read.delim(filecovariates)
+# covariate_data <- read.delim(filecovariates, stringAsFactor = T)
 # SE<-DaMiR.makeSE(count_data, covariate_data)
 @
 
