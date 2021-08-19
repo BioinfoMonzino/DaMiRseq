@@ -4,7 +4,9 @@
 \name{selected_features}
 \alias{selected_features}
 \title{Example gene-expression dataset for DaMiRseq package}
-\format{A dataframe with 40 samples (rows) and 7 variables (genes):}
+\format{
+A dataframe with 40 samples (rows) and 7 variables (genes):
+}
 \usage{
 selected_features
 }

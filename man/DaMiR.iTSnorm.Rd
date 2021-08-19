@@ -4,8 +4,12 @@
 \alias{DaMiR.iTSnorm}
 \title{Normalization of Independent Test Set}
 \usage{
-DaMiR.iTSnorm(Learning_set, Ind_Test_set, normtype = c("vst", "rlog",
-  "logcpm"), method = c("precise", "quick"))
+DaMiR.iTSnorm(
+  Learning_set,
+  Ind_Test_set,
+  normtype = c("vst", "rlog", "logcpm"),
+  method = c("precise", "quick")
+)
 }
 \arguments{
 \item{Learning_set}{A SummarizedExperiment object or a data frame/matrix

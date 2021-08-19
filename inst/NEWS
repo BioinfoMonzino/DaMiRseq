@@ -1,3 +1,13 @@
+Version 2.6.0
+  o Major: We fixed a bug in DaMiR.ModelSelect. Now optimal models
+  are correctly selected;
+  
+  o Major: Now users can plot specific graphs in DaMiR.Allplot and
+  we added new plots;
+  
+  o Minor: We modified the color scale in corrplot
+
+----------------
 Version 2.0.0
   o Since version 2.0.0 of the software, DaMiRseq offers a solution
   to solve two distinct problems, in supervised learning analysis:

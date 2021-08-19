@@ -4,8 +4,13 @@
 \alias{DaMiR.FBest}
 \title{Select best predictors to build Classification Model}
 \usage{
-DaMiR.FBest(data, ranking, autoselect = c("no", "yes"), n.pred = 10,
-  th.zscore = 2)
+DaMiR.FBest(
+  data,
+  ranking,
+  autoselect = c("no", "yes"),
+  n.pred = 10,
+  th.zscore = 2
+)
 }
 \arguments{
 \item{data}{A transposed data frame of expression data.

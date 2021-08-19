@@ -6,8 +6,10 @@
 \title{A dataset with a normalized matrix to test several DaMiRseq functions:
 sample data are a subset of Genotype-Tissue Expression (GTEx)
 RNA-Seq database (dbGap Study Accession: phs000424.v6.p1)}
-\format{A SummarizedExperiment object containing an assay of
-4897 genes (rows) and 40 samples (columns) and a colData with 5 variables}
+\format{
+A SummarizedExperiment object containing an assay of
+4897 genes (rows) and 40 samples (columns) and a colData with 5 variables
+}
 \usage{
 data_norm
 }

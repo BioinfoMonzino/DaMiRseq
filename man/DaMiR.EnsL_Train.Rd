@@ -4,8 +4,13 @@
 \alias{DaMiR.EnsL_Train}
 \title{Train a Binary Classifier using 'Staking' Learning strategy.}
 \usage{
-DaMiR.EnsL_Train(data, classes, variables, fSample.tr.w = 0.7,
-  cl_type = c("RF", "SVM", "LDA", "LR", "NB", "NN", "PLS"))
+DaMiR.EnsL_Train(
+  data,
+  classes,
+  variables,
+  fSample.tr.w = 0.7,
+  cl_type = c("RF", "SVM", "LDA", "LR", "NB", "NN", "PLS")
+)
 }
 \arguments{
 \item{data}{A SummarizedExperiment object or a data frame/matrix

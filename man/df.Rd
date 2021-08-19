@@ -4,14 +4,16 @@
 \name{df}
 \alias{df}
 \title{Example gene-expression dataset for DaMiRseq package}
-\format{A dataframe with 40 samples (rows) and 5 variables (columns):
+\format{
+A dataframe with 40 samples (rows) and 5 variables (columns):
 \describe{
  \item{center}{center where sample has been collected}
  \item{sex}{sample's gender}
  \item{age}{sample's age}
  \item{death}{kind of sample's death, based on Hardy scale}
  \item{class}{sample's class}
-}}
+}
+}
 \usage{
 df
 }

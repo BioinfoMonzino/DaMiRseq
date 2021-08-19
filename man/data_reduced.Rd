@@ -4,11 +4,13 @@
 \name{data_reduced}
 \alias{data_reduced}
 \title{Example gene-expression dataset for DaMiRseq package}
-\format{A list with:
+\format{
+A list with:
 \describe{
  \item{data}{reduced expression matrix}
  \item{variables}{a data frame with variables}
-}}
+}
+}
 \usage{
 data_reduced
 }

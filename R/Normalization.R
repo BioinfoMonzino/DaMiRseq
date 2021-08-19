@@ -17,7 +17,7 @@
 #' \code{varianceStabilizingTransformation}
 #' (\code{vst}), \code{rlog} or \code{logcpm} are allowed; default is "\code{vst}"
 #' @param nFitType Type of method to estimate the dispersion by vst or
-#' rlog. Default is "parametric". See details in \link{estimateDispersions}
+#' rlog. Default is "parametric".
 #'
 #' @details
 #' Before normalization step, this function allows the user to filter

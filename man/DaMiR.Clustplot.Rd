@@ -4,8 +4,12 @@
 \alias{DaMiR.Clustplot}
 \title{Expression data clustering and heatmap}
 \usage{
-DaMiR.Clustplot(data, df, type_row = c("euclidean", "correlation"),
-  type_col = c("euclidean", "correlation"))
+DaMiR.Clustplot(
+  data,
+  df,
+  type_row = c("euclidean", "correlation"),
+  type_col = c("euclidean", "correlation")
+)
 }
 \arguments{
 \item{data}{A SummarizedExperiment object or a matrix or a data.frame

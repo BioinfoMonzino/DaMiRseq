@@ -4,7 +4,9 @@
 \name{sv}
 \alias{sv}
 \title{Example Surrogate Variables dataset for DaMiRseq package}
-\format{A matrix with 40 samples (rows) and 4 surrogate variables (columns):}
+\format{
+A matrix with 40 samples (rows) and 4 surrogate variables (columns):
+}
 \usage{
 sv
 }

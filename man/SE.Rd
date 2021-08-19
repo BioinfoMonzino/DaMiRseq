@@ -4,9 +4,11 @@
 \name{SE}
 \alias{SE}
 \title{Example gene-expression dataset for DaMiRseq package}
-\format{A SummarizedExperiment object containing an assay of
+\format{
+A SummarizedExperiment object containing an assay of
 21363 randomly selected genes (rows) and 40 samples (columns)
-and a colData with 5 variables}
+and a colData with 5 variables
+}
 \usage{
 SE
 }

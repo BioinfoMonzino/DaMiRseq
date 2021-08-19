@@ -4,7 +4,12 @@
 \alias{DaMiR.Allplot}
 \title{Quality assessment and visualization of expression data}
 \usage{
-DaMiR.Allplot(data, df, type = c("spearman", "pearson"))
+DaMiR.Allplot(
+  data,
+  df,
+  type = c("spearman", "pearson"),
+  what = c("all", "all_w_PCA", "MDS", "PCA", "heatmap", "RLEbox", "distr", "avg_distr")
+)
 }
 \arguments{
 \item{data}{A SummarizedExperiment object or a matrix or a data.frame
@@ -18,6 +23,10 @@ of them); at least one column with
  correlation
 analysis. Either "spearman" or "pearson" is allowed; default is
 "spearman"}
+
+\item{what}{A character string specifing the plots to be shown
+'all', 'all_w_PCA', 'MDS','PCA','heatmap','RLEbox', 'distr',
+'avg_distr' are allowed; default is "all"}
 }
 \value{
 A dendrogram and heatmap, MDS plot(s), a RLE boxplot, a

@@ -5,8 +5,10 @@
 \alias{SEtest_norm}
 \title{A sample dataset with a normalized count matrix for "testthat"
 functions.}
-\format{A SummarizedExperiment object containing an assay of
-100 genes (rows) and 11 samples (columns) and a colData with 5 variables}
+\format{
+A SummarizedExperiment object containing an assay of
+100 genes (rows) and 11 samples (columns) and a colData with 5 variables
+}
 \usage{
 SEtest_norm
 }

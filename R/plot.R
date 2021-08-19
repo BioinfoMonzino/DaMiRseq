@@ -49,7 +49,7 @@
 DaMiR.corrplot <- function(sv,
                            df,
                            type=c("pearson","spearman"),
-                           sig.level=0.0001){
+                           sig.level=0.01){
 
   # check missing arguments
   if (missing(sv))
@@ -107,7 +107,18 @@ DaMiR.corrplot <- function(sv,
                        number.cex=0.5,
                        p.mat = rcorr(as.matrix(sva_corr),
                                      type='pearson')$P,
-                       sig.level = sig.level)
+                       sig.level = sig.level,
+                       col = colorRampPalette(rev(c("#67001F",
+                                                    "#B2182B",
+                                                    "#D6604D",
+                                                    "#F4A582",
+                                                    "#FDDBC7",
+                                                    "#FFFFFF",
+                                                    "#D1E5F0",
+                                                    "#92C5DE",
+                                                    "#4393C3",
+                                                    "#2166AC",
+                                                    "#053061")))(200))
   }else if(type == "spearman"){
     corrplot::corrplot(rcorr(as.matrix(sva_corr), type='spearman')$r,
                        type = "upper",
@@ -116,7 +127,18 @@ DaMiR.corrplot <- function(sv,
                        number.cex=0.5,
                        p.mat = rcorr(as.matrix(sva_corr),
                                      type='spearman')$P,
-                       sig.level = sig.level)
+                       sig.level = sig.level,
+                       col = colorRampPalette(rev(c("#67001F",
+                                                    "#B2182B",
+                                                    "#D6604D",
+                                                    "#F4A582",
+                                                    "#FDDBC7",
+                                                    "#FFFFFF",
+                                                    "#D1E5F0",
+                                                    "#92C5DE",
+                                                    "#4393C3",
+                                                    "#2166AC",
+                                                    "#053061")))(200))
   } else{
     stop("Please set 'spearman or 'pearson' as correlation type.")
   }
@@ -140,6 +162,9 @@ DaMiR.corrplot <- function(sv,
 #'  correlation
 #' analysis. Either "spearman" or "pearson" is allowed; default is
 #' "spearman"
+#' @param what A character string specifing the plots to be shown
+#'  'all', 'all_w_PCA', 'MDS','PCA','heatmap','RLEbox', 'distr',
+#'  'avg_distr' are allowed; default is "all"
 #'
 #' @details
 #' Please be sure that NAs are not present in \code{df}'s columns.
@@ -163,7 +188,15 @@ DaMiR.corrplot <- function(sv,
 #'
 DaMiR.Allplot <- function(data,
                           df,
-                          type=c("spearman","pearson")){
+                          type=c("spearman","pearson"),
+                          what=c("all",
+                                 "all_w_PCA",
+                                 "MDS",
+                                 "PCA",
+                                 "heatmap",
+                                 "RLEbox",
+                                 "distr",
+                                 "avg_distr")){
 
   # check arguments
   if (missing(data))
@@ -172,6 +205,9 @@ DaMiR.Allplot <- function(data,
     stop("'df' argument must be provided")
   if (missing(type)){
     type <- type[1]
+  }
+  if (missing(what)){
+    what <- what[1]
   }
 
   # check the type of argument
@@ -189,6 +225,21 @@ DaMiR.Allplot <- function(data,
     count_data<-as.matrix(data)
   }
   df<-as.data.frame(df)
+
+  if (!(all(what %in% c("all",
+                        "all_w_PCA",
+                        "MDS",
+                        "PCA",
+                        "heatmap",
+                        "RLEbox",
+                        "distr",
+                        "avg_distr")))
+  )
+    stop("'what' must be one of
+         all, 'all_w_PCA','MDS', 'PCA',
+         'heatmap', 'RLEbox', 'distr', 'avg_distr'")
+
+
 
   # check the presence of NA or Inf
   if (any(is.na(count_data)))
@@ -229,99 +280,151 @@ DaMiR.Allplot <- function(data,
   seque <- seq(min(sampleDistMatrix),
                max(sampleDistMatrix),
                by=max(sampleDistMatrix)/100)
-  if (ncol(df)< 30){
-    pheatmap(sampleDistMatrix,
-             clustering_distance_rows=mydist,
-             clustering_distance_cols=mydist,
-             col=colors,
-             breaks = seque,
-             annotation_col = df)
-  }else{
-    warning("Too many 'df' variables provided for plotting heatmab by
-  pheatmap. Please, split 'df' in more subsets")
+
+  if (what == "all" | what == "all_w_PCA" | what == "heatmap"){
+    if (ncol(df)< 30){
+      pheatmap(sampleDistMatrix,
+               clustering_distance_rows=mydist,
+               clustering_distance_cols=mydist,
+               #col=colors,
+               #breaks = seque,
+               breaks = seq(0,1,by=0.01),
+               annotation_col = df,
+               main="Heatmap by Dissimilarity")
+
+    }else{
+      warning("Too many 'df' variables provided for plotting heatmab by
+    pheatmap. Please, split 'df' in more subsets")
+    }
   }
   #options(warn = -1)
   ################
   ## MDS plot
   mdsData <- data.frame(cmdscale(sampleDistMatrix))
 
+  if (what == "all" | what == "MDS"){
+    for(i in seq_len(ncol(df))) {
+      mds <- cbind(mdsData, df)
+      cov_list <- mds[,i+2,drop=FALSE]
+      colnames(cov_list)<-"Vars"
+      # cov_list$Vars <- droplevels(cov_list$Vars)
+      #checkNA
+      NA_idx <- which(is.na(cov_list$Vars))
 
-  for(i in seq_len(ncol(df))) {
-    mds <- cbind(mdsData, df)
-    cov_list <- mds[,i+2,drop=FALSE]
-    colnames(cov_list)<-"Vars"
-    # cov_list$Vars <- droplevels(cov_list$Vars)
-    #checkNA
-    NA_idx <- which(is.na(cov_list$Vars))
+      if(length(NA_idx) != 0){
+        cov_list <- cov_list[-NA_idx,,drop=FALSE]
+        mds <- mds[-NA_idx,]
+        #cov_list$Vars <- droplevels(cov_list$Vars)
+        cat("MDS:",length(NA_idx),
+            "samples not drawn (because 'NA') for variable:",
+            colnames(df)[i],"\n")
+      }
 
-    if(length(NA_idx) != 0){
-      cov_list <- cov_list[-NA_idx,,drop=FALSE]
-      mds <- mds[-NA_idx,]
-      #cov_list$Vars <- droplevels(cov_list$Vars)
-      cat("MDS:",length(NA_idx),
-          "samples not drawn (because 'NA') for variable:",
-          colnames(df)[i],"\n")
+      # print(ggplot(mds, aes(X1, X2, shape=mds$class, color=cov_list$Vars)) +
+      print(ggplot(mds, aes(X1, X2, shape=class, color=cov_list$Vars)) +
+              geom_point(size=3) +
+              geom_text(aes(label=rownames(mds)),hjust=0.5,vjust=-1) +
+              ggtitle(paste("Variable: ",colnames(mds[,i+2,drop=FALSE]))))
+    }
+  }
+
+  #### PCA
+  if (what == "all_w_PCA" | what == "PCA"){
+
+    PC_var <-prcomp(t(count_data),center = T,scale. = T)
+    df_PC <- as.data.frame(PC_var$x)
+    df_PC <- df_PC[,1:3]
+    colnames(df_PC) <- c("PC1","PC2","PC3")
+
+
+    for(i in seq_len(ncol(df))) {
+      df_PC_ok <- cbind(df_PC, df)
+      cov_list <- df_PC_ok[,i+3,drop=FALSE]
+      colnames(cov_list)<-"Vars"
+      # cov_list$Vars <- droplevels(cov_list$Vars)
+      #checkNA
+      NA_idx <- which(is.na(cov_list$Vars))
+
+      if(length(NA_idx) != 0){
+        cov_list <- cov_list[-NA_idx,,drop=FALSE]
+        df_PC_ok <- df_PC_ok[-NA_idx,]
+        #cov_list$Vars <- droplevels(cov_list$Vars)
+        cat("MDS:",length(NA_idx),
+            "samples not drawn (because 'NA') for variable:",
+            colnames(df)[i],"\n")
+      }
+
+      print(ggplot(df_PC_ok, aes(PC1, PC2, shape=class, color=cov_list$Vars)) +
+              geom_point(size=3) +
+              geom_text(aes(label=rownames(df_PC_ok)),hjust=0.5,vjust=-1) +
+              ggtitle(paste("Variable: ",colnames(df_PC_ok[,i+3,drop=FALSE]))))
     }
 
-    # print(ggplot(mds, aes(X1, X2, shape=mds$class, color=cov_list$Vars)) +
-    print(ggplot(mds, aes(X1, X2, shape=class, color=cov_list$Vars)) +
-            geom_point(size=3) +
-            geom_text(aes(label=rownames(mds)),hjust=0.5,vjust=-1) +
-            ggtitle(paste("Variable: ",colnames(mds[,i+2,drop=FALSE]))))
+
   }
+
   ################
   ## RLE
   colors <- brewer.pal(8, "Set2")
 
-  plotRLE(count_data,
-          k=2,
-          labels=TRUE,
-          isLog=TRUE,
-          outline=FALSE,
-          col=colors[df$class],
-          main="Relative Log Expression",
-          xaxt="n",las=1)
-  axis(1,
-       las=2,
-       at=seq_len(dim(count_data)[2]),
-       labels=colnames(count_data))
-
+  if (what == "all" | what == "all_w_PCA" | what == "RLEbox"){
+    plotRLE(count_data,
+            k=2,
+            labels=TRUE,
+            isLog=TRUE,
+            outline=FALSE,
+            col=colors[as.factor(df$class)],
+            main="Relative Log Expression",
+            xaxt="n",las=1)
+    axis(1,
+         las=2,
+         at=seq_len(dim(count_data)[2]),
+         labels=colnames(count_data))
+  }
   ####################
   ## Sample by sample distribution
-  acc_dotplot <- melt(as.data.frame(count_data),
-                      measure.vars = colnames(count_data))
-  print(ggplot(acc_dotplot, aes(value,
-                                fill = variable,
-                                colours= variable)) +
-          geom_density(alpha=0.3) +
-          facet_wrap(~variable)+
-          theme(legend.position = "none") +
-          ggtitle("Sample by Sample expression value distribution")
-  )
-  ####################
-  ## Class average expression distribution
-  dataset_2 <- t(count_data)
-  livelli <- levels(df$class)
-
-  for (i in seq_len(length(livelli))){
-    dataset_tmp <- dataset_2[which(df$class %in% livelli[i] ),]
-    colmeans_tmp <- colMeans(dataset_tmp)
-    if (i == 1){
-      dataset_3 <- as.data.frame(colmeans_tmp)
-    }else{
-      dataset_3 <- cbind(dataset_3,colmeans_tmp)
-    }
-  }
-
-  colnames(dataset_3) <-livelli
-  acc_dotplot_2 <- melt(dataset_3,
-                        measure.vars = colnames(dataset_3))
-  print(ggplot(acc_dotplot_2, aes(value,
+  if (what == "all" | what == "all_w_PCA" | what == "distr"){
+    acc_dotplot <- melt(as.data.frame(count_data),
+                        measure.vars = colnames(count_data))
+    print(ggplot(acc_dotplot, aes(value,
                                   fill = variable,
                                   colours= variable)) +
-          geom_density(alpha=0.3) +
-          ggtitle("Class average expression value distribution")
-  )
+            geom_density(alpha=0.3) +
+            facet_wrap(~variable)+
+            theme(legend.position = "none") +
+            ggtitle("Sample by Sample expression value distribution")
+    )
+  }
+
+  ####################
+  ## Class average expression distribution
+  if (what == "all" | what == "all_w_PCA" | what == "avg_distr"){
+    dataset_2 <- t(count_data)
+    livelli <- levels(as.factor(df$class))
+
+    for (i in seq_len(length(livelli))){
+      dataset_tmp <- dataset_2[which(df$class %in% livelli[i] ),,drop=FALSE]
+      colmeans_tmp <- colMeans(dataset_tmp)
+      if (i == 1){
+        dataset_3 <- as.data.frame(colmeans_tmp)
+      }else{
+        dataset_3 <- cbind(dataset_3,colmeans_tmp)
+      }
+    }
+
+    colnames(dataset_3) <-livelli
+    acc_dotplot_2 <- melt(dataset_3,
+                          measure.vars = colnames(dataset_3))
+    print(ggplot(acc_dotplot_2, aes(value,
+                                    fill = variable,
+                                    colours= variable)) +
+            geom_density(alpha=0.3) +
+            ggtitle("Class average expression value distribution")
+    )
+  }
+
+
+
 
 }
 

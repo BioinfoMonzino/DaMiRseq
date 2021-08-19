@@ -4,8 +4,14 @@
 \alias{DaMiR.FSelect}
 \title{Feature selection for classification}
 \usage{
-DaMiR.FSelect(data, df, th.corr = 0.6, type = c("spearman", "pearson"),
-  th.VIP = 3, nPlsIter = 1)
+DaMiR.FSelect(
+  data,
+  df,
+  th.corr = 0.6,
+  type = c("spearman", "pearson"),
+  th.VIP = 3,
+  nPlsIter = 1
+)
 }
 \arguments{
 \item{data}{A transposed data frame or a matrix of normalized expression

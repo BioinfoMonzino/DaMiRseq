@@ -1,9 +1,9 @@
 Package: DaMiRseq
 Type: Package
-Date: 2021-08-12
+Date: 2021-08-19
 Title: Data Mining for RNA-seq data: normalization,
     feature selection and classification
-Version: 2.5.3
+Version: 2.5.4
 Author: Mattia Chiesa <mattia.chiesa@cardiologicomonzino.it>, 
     Luca Piacentini <luca.piacentini@cardiologicomonzino.it>
 Maintainer: Mattia Chiesa <mattia.chiesa@cardiologicomonzino.it>
@@ -34,4 +34,4 @@ Imports: DESeq2, limma, EDASeq, RColorBrewer, sva, Hmisc, pheatmap,
     reshape2, ineq, arm, pls, RSNNS, edgeR, plyr
 Suggests: BiocStyle, knitr, testthat
 Depends: R (>= 3.4), SummarizedExperiment, ggplot2
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1

@@ -4,8 +4,12 @@
 \alias{DaMiR.SV}
 \title{Identification of Surrogate Variables}
 \usage{
-DaMiR.SV(data, method = c("fve", "leek", "be"), th.fve = 0.95,
-  second.var = NULL)
+DaMiR.SV(
+  data,
+  method = c("fve", "leek", "be"),
+  th.fve = 0.95,
+  second.var = NULL
+)
 }
 \arguments{
 \item{data}{A SummarizedExpression object}

@@ -5,9 +5,15 @@
 \title{Filter non Expressed and 'Hypervariant' features and Data
 Normalization}
 \usage{
-DaMiR.normalization(data, minCounts = 10, fSample = 0.5,
-  hyper = c("yes", "no"), th.cv = 3, type = c("vst", "rlog",
-  "logcpm"), nFitType = c("parametric", "local", "mean"))
+DaMiR.normalization(
+  data,
+  minCounts = 10,
+  fSample = 0.5,
+  hyper = c("yes", "no"),
+  th.cv = 3,
+  type = c("vst", "rlog", "logcpm"),
+  nFitType = c("parametric", "local", "mean")
+)
 }
 \arguments{
 \item{data}{A \code{SummarizedExperiment} object}
@@ -28,7 +34,7 @@ accross samples; default is 3}
 (\code{vst}), \code{rlog} or \code{logcpm} are allowed; default is "\code{vst}"}
 
 \item{nFitType}{Type of method to estimate the dispersion by vst or
-rlog. Default is "parametric". See details in \link{estimateDispersions}}
+rlog. Default is "parametric".}
 }
 \value{
 A \code{SummarizedExperiment} object which contains a normalized

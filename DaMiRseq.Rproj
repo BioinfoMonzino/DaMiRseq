@@ -22,4 +22,4 @@ PackageInstallArgs: --no-multiarch --with-keep.source --resave-data
 PackageBuildArgs: --resave-data=best
 PackageBuildBinaryArgs: --compact-vignettes="gs+qpdf"
 PackageCheckArgs: --no-build-vignettes
-PackageRoxygenize: rd,collate
+PackageRoxygenize: rd,collate,namespace

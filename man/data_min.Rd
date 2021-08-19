@@ -4,7 +4,9 @@
 \name{data_min}
 \alias{data_min}
 \title{Example gene-expression dataset for DaMiRseq package}
-\format{A data frame with 40 samples (rows) and 87 genes (columns)}
+\format{
+A data frame with 40 samples (rows) and 87 genes (columns)
+}
 \usage{
 data_min
 }

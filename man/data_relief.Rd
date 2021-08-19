@@ -4,11 +4,13 @@
 \name{data_relief}
 \alias{data_relief}
 \title{Example ranking dataset for DaMiRseq package}
-\format{A dataframe with 87 genes (rows) and 2 variables (columns):
+\format{
+A dataframe with 87 genes (rows) and 2 variables (columns):
 \describe{
  \item{reliefF Score}{reliefF score for each gene}
  \item{scaled reliefF Score}{scaled reliefF score for each gene, by z-score}
-}}
+}
+}
 \usage{
 data_relief
 }

@@ -100,7 +100,7 @@ DaMiR.ModelSelect <- function(df,
     stop("Inf values are not allowed in the 'df' matrix")
 
 
-  # funtion to implement the mode
+  # function to implement the mode
   getmode <- function(v) {
     uniqv <- unique(v)
     uniqv[which.max(tabulate(match(v, uniqv)))]
@@ -109,19 +109,22 @@ DaMiR.ModelSelect <- function(df,
 
   df <- df[,c(metric.idx,npred.idx)]
   df <- round(df,2)
-
-
+  df$orig_idx <- 1:nrow(df)
 
   if(type.sel == "mode" & npred.sel == "min"){
-    idx_opt_model <- which(df[,metric.idx] == getmode(df[,metric.idx]) & df[,npred.idx] == min(df[which(df[,metric.idx] == getmode(df[,metric.idx])),npred.idx]))
+    idx_opt_model_1 <- which(df[,metric.idx] == getmode(df[,metric.idx]))
+    df_1 <- df[idx_opt_model_1,]
+    idx_opt_model <- df_1[which(df_1[,npred.idx] == min(df_1[,npred.idx])),3]
     idx_opt_model <- idx_opt_model[sample(length(idx_opt_model),1)]
 
   }else if(type.sel == "mode" & npred.sel == "rnd"){
-    idx_opt_model <- which(df[,metric.idx] == median(df[,metric.idx]))
+    idx_opt_model <- which(df[,metric.idx] == getmode(df[,metric.idx]))
     idx_opt_model <- idx_opt_model[sample(length(idx_opt_model),1)]
 
   }else if(type.sel == "median" & npred.sel == "min"){
-    idx_opt_model <- which(df[,metric.idx] == median(df[,metric.idx]) & df[,npred.idx] == min(df[which(df[,metric.idx] == getmode(df[,metric.idx])),npred.idx]))
+    idx_opt_model_1 <- which(df[,metric.idx] == median(df[,metric.idx]))
+    df_1 <- df[idx_opt_model_1,]
+    idx_opt_model <- df_1[which(df_1[,npred.idx] == min(df_1[,npred.idx])),3]
     idx_opt_model <- idx_opt_model[sample(length(idx_opt_model),1)]
 
   }else if(type.sel == "median" & npred.sel == "rnd"){
@@ -131,7 +134,9 @@ DaMiR.ModelSelect <- function(df,
   }else if(type.sel == "greater" & npred.sel == "min"){
     if (length((which(df[,metric.idx] >= th.sel))) == 0)
       stop("no models selected")
-    idx_opt_model <- which(df[,metric.idx] >= th.sel & df[,npred.idx] == min(df[which(df[,metric.idx] == getmode(df[,metric.idx])),npred.idx]))
+    idx_opt_model_1 <- which(df[,metric.idx] >= th.sel)
+    df_1 <- df[idx_opt_model_1,]
+    idx_opt_model <- df_1[which(df_1[,npred.idx] == min(df_1[,npred.idx])),3]
     idx_opt_model <- idx_opt_model[sample(length(idx_opt_model),1)]
 
   }else if(type.sel == "greater" & npred.sel == "rnd"){
@@ -144,9 +149,10 @@ DaMiR.ModelSelect <- function(df,
     stop("this type.sel does not exist")
   }
 
+
   # Plot results
   data_summary <- function(data, varname, groupnames){
-   summary_func <- function(x, col){
+    summary_func <- function(x, col){
       c(counts = length(x[[col]]))
     }
     data_sum<-ddply(data, groupnames, .fun=summary_func,
@@ -156,48 +162,49 @@ DaMiR.ModelSelect <- function(df,
   }
 
 
-  df.plot <- data_summary(df,"Accuracy",c("Accuracy","N.predictors"))
+  df.plot <- data_summary(df,
+                          colnames(df)[1],
+                          c(colnames(df)[1],
+                            colnames(df)[2]))
+  colnames(df.plot) <- c("Metrics", "N.predictors","Counts")
 
-
-  print(ggplot(aes(x = Accuracy,y = N.predictors), data = df.plot) +
-    geom_point(aes(alpha = counts,size=counts),color = "blue", alpha = 0.2) +
-    theme_bw()+
-    scale_size(range = c(4, 10))+
-    geom_point(aes(x = df[idx_opt_model,1], y = df[idx_opt_model,2]),
-               shape=120, size=8, color="red") +
-    # scale_y_continuous(
-    #   breaks = function(y) unique(
-    #     floor(pretty(seq(0, (max(y) + 1) * 1.1)))))+
-      # scale_y_continuous(breaks = seq(min(df.plot$N.predictors),
-      #                                 max(df.plot$N.predictors)+1,
-      #                                 1)) +
-      # scale_x_continuous(breaks = seq(0.5,1,0.01)) +
-      scale_y_continuous(limits = c(min(df.plot$N.predictors),
-                                      max(df.plot$N.predictors)+1)) +
-      scale_x_continuous(limits = c(0.5,1)) +
-      ggtitle("Bubble Chart")
+  print(ggplot(aes(x = Metrics,y = N.predictors), data = df.plot) +
+          geom_point(aes(alpha=Counts, size=Counts), color="blue", alpha=0.2) +
+          theme_bw() +
+          scale_size(range = c(5, 15)) +
+          geom_point(aes(x = df[idx_opt_model,1], y = df[idx_opt_model,2]),
+                     shape=120, size=8, color="red") +
+          scale_y_continuous(limits = c(min(df.plot$N.predictors),
+                                        max(df.plot$N.predictors)+1)) +
+          scale_x_continuous(limits = c(0.5,1),
+                             breaks = c(0.5,0.55,0.6,0.65,0.7,0.75,
+                                        0.8,0.85,0.9,0.95,1),
+                             labels = c("0.5","0.55","0.6","0.65","0.7","0.75",
+                                        "0.8","0.85","0.9","0.95","1")) +
+          ggtitle("Bubble Chart")
   )
-#
-# # Print histograms
-#   print(ggplot(aes(df[,metric.idx]),data=df) +
-#           geom_histogram(aes(y=..density..),
-#                          colour="black",
-#                          fill="blue",
-#                          alpha=0.2,
-#                          breaks=seq(0.5, 1, by = 0.01))+
-#           geom_density(alpha=0.4,
-#                        fill="orange") +
-#           # geom_vline(aes(xintercept=df[90,1]),
-#           #            color="red",
-#           #            linetype="dashed", size=2)+
-#           theme_bw()+
-#           xlab(colnames(df)[metric.idx])+
-#           ylab("Counts") +
-#           ggtitle(paste0("Histogram of models performance: by ",
-#                          colnames(df)[metric.idx]))
-#   )
-#
-#
+
+  #
+  # # Print histograms
+  #   print(ggplot(aes(df[,metric.idx]),data=df) +
+  #           geom_histogram(aes(y=..density..),
+  #                          colour="black",
+  #                          fill="blue",
+  #                          alpha=0.2,
+  #                          breaks=seq(0.5, 1, by = 0.01))+
+  #           geom_density(alpha=0.4,
+  #                        fill="orange") +
+  #           # geom_vline(aes(xintercept=df[90,1]),
+  #           #            color="red",
+  #           #            linetype="dashed", size=2)+
+  #           theme_bw()+
+  #           xlab(colnames(df)[metric.idx])+
+  #           ylab("Counts") +
+  #           ggtitle(paste0("Histogram of models performance: by ",
+  #                          colnames(df)[metric.idx]))
+  #   )
+  #
+  #
   cat("In your df, the 'optimal model' has index:",idx_opt_model, "\n")
   cat(colnames(df)[metric.idx], "=",df[idx_opt_model,1],"\n")
   cat(df[idx_opt_model,2], "predictors","\n")

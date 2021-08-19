@@ -4,9 +4,14 @@
 \alias{DaMiR.ModelSelect}
 \title{Select the best classification model}
 \usage{
-DaMiR.ModelSelect(df, type.sel = c("mode", "median", "greater"),
-  th.sel = 0.85, npred.sel = c("min", "rnd"), metric.idx = 1,
-  npred.idx = 2)
+DaMiR.ModelSelect(
+  df,
+  type.sel = c("mode", "median", "greater"),
+  th.sel = 0.85,
+  npred.sel = c("min", "rnd"),
+  metric.idx = 1,
+  npred.idx = 2
+)
 }
 \arguments{
 \item{df}{A data frame of performance metrics. At least two columns
