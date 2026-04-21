@@ -586,7 +586,7 @@ colnames(res_df) <- c("Accuracy",
 For each iteration, we (i) split the dataset in training (\Rcode{TR\_set}) and validation set (\Rcode{Val\_set}); (ii) performed the features selection and built the model (\Rcode{ensl\_model}) on the training set; and, (iii) tested and evaluated the model on the validation set (\Rcode{res\_Val}).
 Regarding the feature selection, we used the \damir{} procedure, described in Section~\ref{damirfs}; however, any other feature selection strategies can be jointly utilized, such as the \Biocpkg{GARS} package.
 
-<<chu_17bis2, dev="pdf", results="hide" >>=
+<<chu_17bis2, dev="pdf", results="hide", eval=FALSE>>=
 for (cv_fold in seq_len(nfold)){
 
   # Create Training and Validation Sets
@@ -637,7 +637,7 @@ for (cv_fold in seq_len(nfold)){
 
 Finally, we searched for the 'optimal model' to be used for predicting new samples. In this simulation, we set \Rcode{type.sel = "mode"} and \Rcode{npred.sel = "min"} to select the model with the lowest number of seleted features ensuring the most frequent accuracy value.
 
-<<chu_17bis3, dev="pdf">>=
+<<chu_17bis3, dev="pdf", eval=FALSE>>=
 # Model Selection
 res_df[,1:5]
 
@@ -658,7 +658,7 @@ Bubble Chart. The performance of each generated model (blue circle) is reprepese
 
 The selected model (the red cross in Figure~\ref{fig_bubble}) reached an accuracy greater than 90\% with less than 10 predictors(out of 19183) on its validation set, enabling to predict correctly all the samples composing the independent test set.
 In addition, subsetting the \Rcode{cv\_predictors} object will return the predictors of the optimal model.
-<<chu_17bis4, dev="pdf">>=
+<<chu_17bis4, dev="pdf" , eval=FALSE>>=
 # Prediction on the the independent test set
 res_predict <- DaMiR.EnsL_Predict(Test_set,
                    bestModel = cv_models[[idx_best_model]])
