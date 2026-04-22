@@ -739,7 +739,7 @@ In Figure~\ref{fig_indTS1} and in Figure~\ref{fig_indTS2}, the effect of normali
 
 Finally, users can predict the class of the independent test set samples and assessed the performance, by directly using the \Rfunction{DaMiR.EnsL\_Predict} function and the best model built on the Learning Set. Here, for simplicity, we used the model built on the workflow implemented in Section~ \ref{workf2}.
 
-<<chu_17ter3, dev="pdf">>=
+<<chu_17ter3, dev="pdf", eval=FALSE>>=
 # Prediction on independent test set
 
 prediction <- DaMiR.EnsL_Predict(t(adj_norm_ind_ts),
