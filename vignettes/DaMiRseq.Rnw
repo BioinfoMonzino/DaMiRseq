@@ -646,14 +646,14 @@ idx_best_model <- DaMiR.ModelSelect(res_df,
                                     npred.sel = "min")
 @
 
-\begin{figure}[!htbp]
-\includegraphics{figure/chu_17bis3-1}
-\caption{
-Bubble Chart. The performance of each generated model (blue circle) is reprepesented in terms of classification metrics (x-axis) and the number of predictors (y-axis). The size of circles corresponds to the number of models with a specific classification metrics and a specific number of predictors. The red cross represents the model, deemed optimal by \Rfunction{DaMiR.ModelSelect}.
-}
-\label{fig_bubble}
-\end{figure}
-\FloatBarrier
+#\begin{figure}[!htbp]
+#\includegraphics{figure/chu_17bis3-1}
+#\caption{
+#Bubble Chart. The performance of each generated model (blue circle) is reprepesented in terms of classification metrics (x-axis) and the number of predictors (y-axis). The size of circles corresponds to the number of models with a specific classification metrics and a specific number of predictors. The red cross represents the model, deemed optimal by \Rfunction{DaMiR.ModelSelect}.
+#}
+#\label{fig_bubble}
+#\end{figure}
+#\FloatBarrier
 
 
 The selected model (the red cross in Figure~\ref{fig_bubble}) reached an accuracy greater than 90\% with less than 10 predictors(out of 19183) on its validation set, enabling to predict correctly all the samples composing the independent test set.
